@@ -41,8 +41,6 @@ results = client.search.query({"query": "bitcoin"})
 # Series and sports
 series = client.series.list()
 sports = client.sports.list()
-
-client.close()
 ```
 
 ### Authenticated Endpoints (Trading)
