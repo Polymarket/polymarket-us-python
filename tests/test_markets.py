@@ -53,9 +53,7 @@ class TestMarketsRetrieve:
         assert response["market"]["id"] == 123
 
     @patch.object(httpx.Client, "request")
-    def test_uses_correct_path_with_id(
-        self, mock_request: MagicMock, client: PolymarketUS
-    ) -> None:
+    def test_uses_correct_path_with_id(self, mock_request: MagicMock, client: PolymarketUS) -> None:
         """Should use correct path with id."""
         mock_response = MagicMock()
         mock_response.is_success = True

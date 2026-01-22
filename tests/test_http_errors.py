@@ -26,9 +26,7 @@ class TestHTTPErrors:
         """Create a client."""
         return PolymarketUS()
 
-    def _make_mock_response(
-        self, status_code: int, message: str, reason: str
-    ) -> MagicMock:
+    def _make_mock_response(self, status_code: int, message: str, reason: str) -> MagicMock:
         """Create a mock response."""
         mock_response = MagicMock(spec=httpx.Response)
         mock_response.is_success = False
@@ -40,9 +38,7 @@ class TestHTTPErrors:
         return mock_response
 
     @patch.object(httpx.Client, "request")
-    def test_400_raises_bad_request(
-        self, mock_request: MagicMock, client: PolymarketUS
-    ) -> None:
+    def test_400_raises_bad_request(self, mock_request: MagicMock, client: PolymarketUS) -> None:
         """400 should raise BadRequestError."""
         mock_request.return_value = self._make_mock_response(
             400, "Invalid parameters", "Bad Request"
@@ -59,9 +55,7 @@ class TestHTTPErrors:
         self, mock_request: MagicMock, client: PolymarketUS
     ) -> None:
         """401 should raise AuthenticationError."""
-        mock_request.return_value = self._make_mock_response(
-            401, "Invalid API key", "Unauthorized"
-        )
+        mock_request.return_value = self._make_mock_response(401, "Invalid API key", "Unauthorized")
 
         with pytest.raises(AuthenticationError) as exc_info:
             client.events.list()
@@ -81,13 +75,9 @@ class TestHTTPErrors:
         assert exc_info.value.status_code == 403
 
     @patch.object(httpx.Client, "request")
-    def test_404_raises_not_found(
-        self, mock_request: MagicMock, client: PolymarketUS
-    ) -> None:
+    def test_404_raises_not_found(self, mock_request: MagicMock, client: PolymarketUS) -> None:
         """404 should raise NotFoundError."""
-        mock_request.return_value = self._make_mock_response(
-            404, "Event not found", "Not Found"
-        )
+        mock_request.return_value = self._make_mock_response(404, "Event not found", "Not Found")
 
         with pytest.raises(NotFoundError) as exc_info:
             client.events.retrieve(99999)
@@ -95,9 +85,7 @@ class TestHTTPErrors:
         assert exc_info.value.status_code == 404
 
     @patch.object(httpx.Client, "request")
-    def test_429_raises_rate_limit(
-        self, mock_request: MagicMock, client: PolymarketUS
-    ) -> None:
+    def test_429_raises_rate_limit(self, mock_request: MagicMock, client: PolymarketUS) -> None:
         """429 should raise RateLimitError."""
         mock_request.return_value = self._make_mock_response(
             429, "Too many requests", "Too Many Requests"
