@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "polymarket-us"
-version = "0.1.1"
+version = "0.1.2"
 description = "Polymarket US Python SDK"
 readme = "README.md"
 license = "MIT"
