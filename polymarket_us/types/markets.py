@@ -15,10 +15,10 @@ class Team(TypedDict, total=False):
     record: str
     logo: str
     alias: str
-    safe_name: str
-    home_icon: str
-    away_icon: str
-    color_primary: str
+    safeName: str
+    homeIcon: str
+    awayIcon: str
+    colorPrimary: str
 
 
 class MarketDetail(TypedDict, total=False):
@@ -33,7 +33,7 @@ class MarketDetail(TypedDict, total=False):
     closed: bool
     liquidity: float
     volume: float
-    event_slug: str
+    eventSlug: str
     team: Team
 
 
@@ -47,11 +47,11 @@ class OrderBookLevel(TypedDict):
 class MarketStats(TypedDict, total=False):
     """Market statistics."""
 
-    last_trade_px: Amount
-    shares_traded: str
-    open_interest: str
-    high_px: Amount
-    low_px: Amount
+    lastTradePx: Amount
+    sharesTraded: str
+    openInterest: str
+    highPx: Amount
+    lowPx: Amount
 
 
 MarketState = Literal[
@@ -68,51 +68,51 @@ MarketState = Literal[
 class MarketBook(TypedDict, total=False):
     """Order book for a market."""
 
-    market_slug: str
+    marketSlug: str
     bids: list[OrderBookLevel]
     offers: list[OrderBookLevel]
     state: MarketState
     stats: MarketStats
-    transact_time: str
+    transactTime: str
 
 
 class MarketBBO(TypedDict, total=False):
     """Best bid/offer for a market."""
 
-    market_slug: str
-    best_bid: Amount
-    best_ask: Amount
-    bid_depth: int
-    ask_depth: int
-    last_trade_px: Amount
-    shares_traded: str
-    open_interest: str
+    marketSlug: str
+    bestBid: Amount
+    bestAsk: Amount
+    bidDepth: int
+    askDepth: int
+    lastTradePx: Amount
+    sharesTraded: str
+    openInterest: str
 
 
 class MarketSettlement(TypedDict):
     """Market settlement information."""
 
-    market_slug: str
-    settlement_price: Amount
-    settled_at: str
+    marketSlug: str
+    settlementPrice: Amount
+    settledAt: str
 
 
 class MarketsListParams(PaginationParams, total=False):
     """Parameters for listing markets."""
 
-    order_by: list[str]
-    order_direction: Literal["asc", "desc"]
+    orderBy: list[str]
+    orderDirection: Literal["asc", "desc"]
     id: list[int]
     slug: list[str]
-    event_slug: list[str]
+    eventSlug: list[str]
     archived: bool
     active: bool
     closed: bool
-    liquidity_min: float
-    liquidity_max: float
-    volume_min: float
-    volume_max: float
-    game_id: int
+    liquidityMin: float
+    liquidityMax: float
+    volumeMin: float
+    volumeMax: float
+    gameId: int
     categories: list[str]
 
 

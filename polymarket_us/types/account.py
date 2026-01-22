@@ -11,26 +11,26 @@ class PendingWithdrawal(TypedDict, total=False):
     balance: float
     description: str
     acknowledged: bool
-    bank_id: str
-    creation_time: str
-    destination_account_name: str
+    bankId: str
+    creationTime: str
+    destinationAccountName: str
 
 
 class UserBalance(TypedDict, total=False):
     """User account balance."""
 
-    current_balance: float
+    currentBalance: float
     currency: str
-    last_updated: str
-    buying_power: float
-    asset_notional: float
-    asset_available: float
-    pending_credit: float
-    open_orders: float
-    unsettled_funds: float
-    pending_withdrawals: list[PendingWithdrawal]
-    margin_requirement: float
-    balance_reservation: float
+    lastUpdated: str
+    buyingPower: float
+    assetNotional: float
+    assetAvailable: float
+    pendingCredit: float
+    openOrders: float
+    unsettledFunds: float
+    pendingWithdrawals: list[PendingWithdrawal]
+    marginRequirement: float
+    balanceReservation: float
 
 
 class GetAccountBalancesResponse(TypedDict):

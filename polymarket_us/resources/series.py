@@ -8,25 +8,11 @@ class Series(APIResource):
     """Series API resource."""
 
     def list(self, params: SeriesListParams | None = None) -> GetSeriesListResponse:
-        """List series with optional filtering.
-
-        Args:
-            params: Optional filtering and pagination parameters
-
-        Returns:
-            Response containing list of series
-        """
-        return self._client.get("/v1/series", query=self._convert_params(params))
+        """List series with optional filtering."""
+        return self._client.get("/v1/series", query=dict(params) if params else None)
 
     def retrieve(self, id: int) -> GetSeriesResponse:
-        """Get a series by ID.
-
-        Args:
-            id: Series ID
-
-        Returns:
-            Response containing the series
-        """
+        """Get a series by ID."""
         return self._client.get(f"/v1/series/id/{id}")
 
 
@@ -34,23 +20,9 @@ class AsyncSeries(AsyncAPIResource):
     """Series API resource (async)."""
 
     async def list(self, params: SeriesListParams | None = None) -> GetSeriesListResponse:
-        """List series with optional filtering.
-
-        Args:
-            params: Optional filtering and pagination parameters
-
-        Returns:
-            Response containing list of series
-        """
-        return await self._client.get("/v1/series", query=self._convert_params(params))
+        """List series with optional filtering."""
+        return await self._client.get("/v1/series", query=dict(params) if params else None)
 
     async def retrieve(self, id: int) -> GetSeriesResponse:
-        """Get a series by ID.
-
-        Args:
-            id: Series ID
-
-        Returns:
-            Response containing the series
-        """
+        """Get a series by ID."""
         return await self._client.get(f"/v1/series/id/{id}")

@@ -50,7 +50,7 @@ ManualOrderIndicator = Literal[
 class SlippageTolerance(TypedDict, total=False):
     """Slippage tolerance for market orders."""
 
-    current_price: Amount
+    currentPrice: Amount
     bips: int
     ticks: int
 
@@ -62,34 +62,34 @@ class MarketMetadata(TypedDict, total=False):
     icon: str
     title: str
     outcome: str
-    event_slug: str
-    team_id: int
-    team: dict[str, object]  # Team info
+    eventSlug: str
+    teamId: int
+    team: dict[str, object]
 
 
 class Order(TypedDict, total=False):
     """Order details."""
 
     id: str
-    market_slug: str
+    marketSlug: str
     side: OrderSide
     type: OrderType
     price: Amount
     quantity: int
-    cum_quantity: int
-    leaves_quantity: int
+    cumQuantity: int
+    leavesQuantity: int
     tif: TimeInForce
-    good_till_time: str
+    goodTillTime: str
     intent: OrderIntent
-    market_metadata: MarketMetadata
+    marketMetadata: MarketMetadata
     state: OrderState
-    avg_px: Amount
-    cash_order_qty: Amount
-    insert_time: str
-    create_time: str
-    commission_notional_total_collected: Amount
-    commissions_basis_points: str
-    maker_commissions_basis_points: str
+    avgPx: Amount
+    cashOrderQty: Amount
+    insertTime: str
+    createTime: str
+    commissionNotionalTotalCollected: Amount
+    commissionsBasisPoints: str
+    makerCommissionsBasisPoints: str
 
 
 class Execution(TypedDict, total=False):
@@ -97,33 +97,33 @@ class Execution(TypedDict, total=False):
 
     id: str
     order: Order
-    last_shares: str
-    last_px: Amount
+    lastShares: str
+    lastPx: Amount
     type: ExecutionType
     text: str
-    order_reject_reason: str
-    transact_time: str
-    trade_id: str
+    orderRejectReason: str
+    transactTime: str
+    tradeId: str
     aggressor: bool
-    commission_notional_collected: Amount
+    commissionNotionalCollected: Amount
 
 
 class CreateOrderParams(TypedDict, total=False):
     """Parameters for creating an order."""
 
-    market_slug: str  # Required
+    marketSlug: str  # Required
     intent: OrderIntent  # Required
     type: OrderType
     price: Amount
     quantity: int
     tif: TimeInForce
-    participate_dont_initiate: bool
-    good_till_time: str
-    cash_order_qty: Amount
-    manual_order_indicator: ManualOrderIndicator
-    synchronous_execution: bool
-    max_block_time: str
-    slippage_tolerance: SlippageTolerance
+    participateDontInitiate: bool
+    goodTillTime: str
+    cashOrderQty: Amount
+    manualOrderIndicator: ManualOrderIndicator
+    synchronousExecution: bool
+    maxBlockTime: str
+    slippageTolerance: SlippageTolerance
 
 
 class CreateOrderResponse(TypedDict, total=False):
@@ -136,18 +136,18 @@ class CreateOrderResponse(TypedDict, total=False):
 class ModifyOrderParams(TypedDict, total=False):
     """Parameters for modifying an order."""
 
-    market_slug: str  # Required
+    marketSlug: str  # Required
     price: Amount
     quantity: int
     tif: TimeInForce
-    participate_dont_initiate: bool
-    good_till_time: str
+    participateDontInitiate: bool
+    goodTillTime: str
 
 
 class CancelOrderParams(TypedDict):
     """Parameters for canceling an order."""
 
-    market_slug: str
+    marketSlug: str
 
 
 class CancelAllOrdersParams(TypedDict, total=False):
@@ -159,7 +159,7 @@ class CancelAllOrdersParams(TypedDict, total=False):
 class CancelAllOrdersResponse(TypedDict):
     """Response from canceling all orders."""
 
-    canceled_order_ids: list[str]
+    canceledOrderIds: list[str]
 
 
 class GetOpenOrdersParams(TypedDict, total=False):
@@ -195,11 +195,11 @@ class PreviewOrderResponse(TypedDict):
 class ClosePositionParams(TypedDict, total=False):
     """Parameters for closing a position."""
 
-    market_slug: str  # Required
-    manual_order_indicator: ManualOrderIndicator
-    synchronous_execution: bool
-    max_block_time: str
-    slippage_tolerance: SlippageTolerance
+    marketSlug: str  # Required
+    manualOrderIndicator: ManualOrderIndicator
+    synchronousExecution: bool
+    maxBlockTime: str
+    slippageTolerance: SlippageTolerance
 
 
 class ClosePositionResponse(TypedDict, total=False):

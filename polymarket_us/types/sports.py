@@ -37,11 +37,11 @@ class SportsTeam(TypedDict, total=False):
     record: str
     logo: str
     alias: str
-    safe_name: str
-    home_icon: str
-    away_icon: str
-    color_primary: str
-    provider_ids: list[SportsTeamProvider]
+    safeName: str
+    homeIcon: str
+    awayIcon: str
+    colorPrimary: str
+    providerIds: list[SportsTeamProvider]
 
 
 class GetSportsResponse(TypedDict):
@@ -53,7 +53,7 @@ class GetSportsResponse(TypedDict):
 class GetSportsTeamsParams(TypedDict, total=False):
     """Parameters for getting teams."""
 
-    team_ids: list[str]
+    teamIds: list[str]
     provider: str
     league: str
 

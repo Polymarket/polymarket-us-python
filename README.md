@@ -56,7 +56,7 @@ client = PolymarketUS(
 
 # Create an order
 order = client.orders.create({
-    "market_slug": "btc-100k-2025",
+    "marketSlug": "btc-100k-2025",
     "intent": "ORDER_INTENT_BUY_LONG",
     "type": "ORDER_TYPE_LIMIT",
     "price": {"value": "0.55", "currency": "USD"},
@@ -68,7 +68,7 @@ order = client.orders.create({
 open_orders = client.orders.list()
 
 # Cancel an order
-client.orders.cancel(order["id"], {"market_slug": "btc-100k-2025"})
+client.orders.cancel(order["id"], {"marketSlug": "btc-100k-2025"})
 
 # Cancel all orders
 client.orders.cancel_all()
@@ -126,6 +126,8 @@ client = PolymarketUS(
 ```python
 from polymarket_us import (
     PolymarketUS,
+    APIConnectionError,
+    APITimeoutError,
     AuthenticationError,
     BadRequestError,
     NotFoundError,
@@ -134,14 +136,18 @@ from polymarket_us import (
 
 try:
     client.orders.create({...})
-except AuthenticationError:
-    print("Invalid credentials")
-except BadRequestError:
-    print("Invalid order parameters")
-except RateLimitError:
-    print("Rate limit exceeded, retry later")
-except NotFoundError:
-    print("Resource not found")
+except AuthenticationError as e:
+    print(f"Invalid credentials: {e.message}")
+except BadRequestError as e:
+    print(f"Invalid order parameters: {e.message}")
+except RateLimitError as e:
+    print(f"Rate limit exceeded: {e.message}")
+except NotFoundError as e:
+    print(f"Resource not found: {e.message}")
+except APITimeoutError:
+    print("Request timed out")
+except APIConnectionError as e:
+    print(f"Connection error: {e.message}")
 ```
 
 ## Configuration
@@ -155,6 +161,9 @@ client = PolymarketUS(
 ```
 
 ### WebSocket (Real-Time Data)
+
+> **Note**: WebSocket connections are async-only due to their event-driven nature.
+> Use `asyncio.run()` when working with the sync client, or use `AsyncPolymarketUS` directly.
 
 ```python
 import asyncio
@@ -181,9 +190,9 @@ async def main():
     private_ws.on("error", lambda e: print(f"Error: {e}"))
 
     await private_ws.connect()
-    await private_ws.subscribe_orders("order-sub-1")
-    await private_ws.subscribe_positions("pos-sub-1")
-    await private_ws.subscribe_account_balance("balance-sub-1")
+    await private_ws.subscribe("order-sub-1", "SUBSCRIPTION_TYPE_ORDER")
+    await private_ws.subscribe("pos-sub-1", "SUBSCRIPTION_TYPE_POSITION")
+    await private_ws.subscribe("balance-sub-1", "SUBSCRIPTION_TYPE_ACCOUNT_BALANCE")
 
     # Markets WebSocket (order book, trades)
     markets_ws = client.ws.markets()
@@ -192,8 +201,8 @@ async def main():
     markets_ws.on("trade", lambda d: print(f"Trade: {d['trade']}"))
 
     await markets_ws.connect()
-    await markets_ws.subscribe_market_data("md-sub-1", ["btc-100k-2025"])
-    await markets_ws.subscribe_trades("trade-sub-1", ["btc-100k-2025"])
+    await markets_ws.subscribe("md-sub-1", "SUBSCRIPTION_TYPE_MARKET_DATA", ["btc-100k-2025"])
+    await markets_ws.subscribe("trade-sub-1", "SUBSCRIPTION_TYPE_TRADE", ["btc-100k-2025"])
 
     # Keep running
     await asyncio.sleep(60)
@@ -271,12 +280,14 @@ asyncio.run(main())
 |--------|-------------|
 | `search.query(params?)` | Search events (includes nested markets) |
 
-### WebSocket (Authenticated)
+### WebSocket (Authenticated, Async-Only)
 
 | Method | Description |
 |--------|-------------|
 | `ws.private()` | Create private WebSocket connection |
 | `ws.markets()` | Create markets WebSocket connection |
+
+WebSocket methods (`connect()`, `subscribe()`, `close()`) are async and must be awaited.
 
 **Private WebSocket Events:**
 - `order_snapshot` - Initial orders snapshot

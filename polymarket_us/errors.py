@@ -1,5 +1,7 @@
 """Exception classes for Polymarket US SDK."""
 
+import httpx
+
 
 class PolymarketUSError(Exception):
     """Base exception for Polymarket US SDK errors."""
@@ -10,48 +12,98 @@ class PolymarketUSError(Exception):
 class APIError(PolymarketUSError):
     """Error returned by the API."""
 
-    def __init__(self, status: int, message: str, code: str | None = None) -> None:
+    message: str
+    request: httpx.Request | None
+    body: object | None
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        request: httpx.Request | None = None,
+        body: object | None = None,
+    ) -> None:
         super().__init__(message)
-        self.status = status
-        self.code = code
+        self.message = message
+        self.request = request
+        self.body = body
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(status={self.status}, message={str(self)!r})"
+        return f"{self.__class__.__name__}(message={self.message!r})"
 
 
-class AuthenticationError(APIError):
-    """Authentication failed (401)."""
+class APIConnectionError(APIError):
+    """Network connection error."""
 
-    def __init__(self, message: str = "Authentication failed") -> None:
-        super().__init__(401, message, "authentication_error")
+    def __init__(
+        self,
+        *,
+        message: str = "Connection error.",
+        request: httpx.Request | None = None,
+    ) -> None:
+        super().__init__(message, request=request, body=None)
 
 
-class BadRequestError(APIError):
+class APITimeoutError(APIConnectionError):
+    """Request timed out."""
+
+    def __init__(self, *, request: httpx.Request | None = None) -> None:
+        super().__init__(message="Request timed out.", request=request)
+
+
+class APIStatusError(APIError):
+    """HTTP 4xx/5xx response."""
+
+    response: httpx.Response
+    status_code: int
+
+    def __init__(
+        self, message: str, *, response: httpx.Response, body: object | None = None
+    ) -> None:
+        super().__init__(message, request=response.request, body=body)
+        self.response = response
+        self.status_code = response.status_code
+
+    def __repr__(self) -> str:
+        return (
+            f"{self.__class__.__name__}(status_code={self.status_code}, message={self.message!r})"
+        )
+
+
+class BadRequestError(APIStatusError):
     """Bad request (400)."""
 
-    def __init__(self, message: str = "Bad request") -> None:
-        super().__init__(400, message, "bad_request")
+    pass
 
 
-class NotFoundError(APIError):
+class AuthenticationError(APIStatusError):
+    """Authentication failed (401)."""
+
+    pass
+
+
+class PermissionDeniedError(APIStatusError):
+    """Permission denied (403)."""
+
+    pass
+
+
+class NotFoundError(APIStatusError):
     """Resource not found (404)."""
 
-    def __init__(self, message: str = "Resource not found") -> None:
-        super().__init__(404, message, "not_found")
+    pass
 
 
-class RateLimitError(APIError):
+class RateLimitError(APIStatusError):
     """Rate limit exceeded (429)."""
 
-    def __init__(self, message: str = "Rate limit exceeded") -> None:
-        super().__init__(429, message, "rate_limit_exceeded")
+    pass
 
 
-class InternalServerError(APIError):
+class InternalServerError(APIStatusError):
     """Internal server error (500+)."""
 
-    def __init__(self, message: str = "Internal server error") -> None:
-        super().__init__(500, message, "internal_server_error")
+    pass
 
 
 class WebSocketError(PolymarketUSError):

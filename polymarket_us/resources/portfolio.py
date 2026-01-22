@@ -13,32 +13,18 @@ class Portfolio(APIResource):
     """Portfolio API resource (requires authentication)."""
 
     def positions(self, params: GetUserPositionsParams | None = None) -> GetUserPositionsResponse:
-        """Get trading positions.
-
-        Args:
-            params: Optional filtering parameters
-
-        Returns:
-            Response containing positions
-        """
+        """Get trading positions."""
         return self._client.get(
             "/v1/portfolio/positions",
-            query=self._convert_params(params),
+            query=dict(params) if params else None,
             authenticated=True,
         )
 
     def activities(self, params: GetActivitiesParams | None = None) -> GetActivitiesResponse:
-        """Get activity history.
-
-        Args:
-            params: Optional filtering parameters
-
-        Returns:
-            Response containing activities
-        """
+        """Get activity history."""
         return self._client.get(
             "/v1/portfolio/activities",
-            query=self._convert_params(params),
+            query=dict(params) if params else None,
             authenticated=True,
         )
 
@@ -49,31 +35,17 @@ class AsyncPortfolio(AsyncAPIResource):
     async def positions(
         self, params: GetUserPositionsParams | None = None
     ) -> GetUserPositionsResponse:
-        """Get trading positions.
-
-        Args:
-            params: Optional filtering parameters
-
-        Returns:
-            Response containing positions
-        """
+        """Get trading positions."""
         return await self._client.get(
             "/v1/portfolio/positions",
-            query=self._convert_params(params),
+            query=dict(params) if params else None,
             authenticated=True,
         )
 
     async def activities(self, params: GetActivitiesParams | None = None) -> GetActivitiesResponse:
-        """Get activity history.
-
-        Args:
-            params: Optional filtering parameters
-
-        Returns:
-            Response containing activities
-        """
+        """Get activity history."""
         return await self._client.get(
             "/v1/portfolio/activities",
-            query=self._convert_params(params),
+            query=dict(params) if params else None,
             authenticated=True,
         )

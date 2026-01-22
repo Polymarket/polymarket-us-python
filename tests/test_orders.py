@@ -23,7 +23,7 @@ class TestOrdersAuthenticationRequired:
         with pytest.raises(AuthenticationError):
             client.orders.create(
                 {
-                    "market_slug": "test",
+                    "marketSlug": "test",
                     "intent": "ORDER_INTENT_BUY_LONG",
                 }
             )
@@ -118,7 +118,7 @@ class TestOrdersCreate:
 
         response = auth_client.orders.create(
             {
-                "market_slug": "btc-100k",
+                "marketSlug": "btc-100k",
                 "intent": "ORDER_INTENT_BUY_LONG",
                 "type": "ORDER_TYPE_LIMIT",
                 "price": {"value": "0.55", "currency": "USD"},
@@ -139,7 +139,7 @@ class TestOrdersCreate:
 
         auth_client.orders.create(
             {
-                "market_slug": "test",
+                "marketSlug": "test",
                 "intent": "ORDER_INTENT_BUY_LONG",
             }
         )
