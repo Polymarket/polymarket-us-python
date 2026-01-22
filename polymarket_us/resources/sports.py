@@ -12,45 +12,23 @@ class Sports(APIResource):
     """Sports API resource."""
 
     def list(self) -> GetSportsResponse:
-        """List all sports.
-
-        Returns:
-            Response containing list of sports
-        """
+        """List all sports."""
         return self._client.get("/v1/sports")
 
     def teams(self, params: GetSportsTeamsParams | None = None) -> GetSportsTeamsResponse:
-        """Get teams for a provider.
-
-        Args:
-            params: Optional parameters to filter teams
-
-        Returns:
-            Response containing teams
-        """
-        return self._client.get("/v1/sports/teams/provider", query=self._convert_params(params))
+        """Get teams for a provider."""
+        return self._client.get("/v1/sports/teams/provider", query=dict(params) if params else None)
 
 
 class AsyncSports(AsyncAPIResource):
     """Sports API resource (async)."""
 
     async def list(self) -> GetSportsResponse:
-        """List all sports.
-
-        Returns:
-            Response containing list of sports
-        """
+        """List all sports."""
         return await self._client.get("/v1/sports")
 
     async def teams(self, params: GetSportsTeamsParams | None = None) -> GetSportsTeamsResponse:
-        """Get teams for a provider.
-
-        Args:
-            params: Optional parameters to filter teams
-
-        Returns:
-            Response containing teams
-        """
+        """Get teams for a provider."""
         return await self._client.get(
-            "/v1/sports/teams/provider", query=self._convert_params(params)
+            "/v1/sports/teams/provider", query=dict(params) if params else None
         )

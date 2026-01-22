@@ -10,7 +10,7 @@ class SearchParams(TypedDict, total=False):
 
     query: str
     limit: int
-    series_ids: list[int]
+    seriesIds: list[int]
     status: Literal["active", "closed", "upcoming"]
     page: int
 

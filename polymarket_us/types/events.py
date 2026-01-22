@@ -41,8 +41,8 @@ class Event(TypedDict, total=False):
     slug: str
     title: str
     description: str
-    start_time: str
-    end_time: str
+    startTime: str
+    endTime: str
     active: bool
     closed: bool
     archived: bool
@@ -57,31 +57,31 @@ class Event(TypedDict, total=False):
 class EventsListParams(PaginationParams, total=False):
     """Parameters for listing events."""
 
-    order_by: list[str]
-    order_direction: Literal["asc", "desc"]
+    orderBy: list[str]
+    orderDirection: Literal["asc", "desc"]
     id: list[int]
     slug: list[str]
     archived: bool
     active: bool
     closed: bool
-    liquidity_min: float
-    liquidity_max: float
-    volume_min: float
-    volume_max: float
-    start_date_min: str
-    start_date_max: str
-    end_date_min: str
-    end_date_max: str
-    tag_id: int
-    tag_slug: str
-    related_tags: bool
+    liquidityMin: float
+    liquidityMax: float
+    volumeMin: float
+    volumeMax: float
+    startDateMin: str
+    startDateMax: str
+    endDateMin: str
+    endDateMax: str
+    tagId: int
+    tagSlug: str
+    relatedTags: bool
     featured: bool
-    series_id: list[int]
-    event_date: str
-    event_week: int
-    start_time_min: str
-    start_time_max: str
-    game_id: int
+    seriesId: list[int]
+    eventDate: str
+    eventWeek: int
+    startTimeMin: str
+    startTimeMax: str
+    gameId: int
     ended: bool
     categories: list[str]
 

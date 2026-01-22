@@ -18,9 +18,9 @@ MarketSubscriptionType = Literal[
 
 
 class _SubscribePayload(TypedDict, total=False):
-    request_id: str
-    subscription_type: PrivateSubscriptionType | MarketSubscriptionType
-    market_slugs: list[str]
+    requestId: str
+    subscriptionType: PrivateSubscriptionType | MarketSubscriptionType
+    marketSlugs: list[str]
 
 
 class SubscribeRequest(TypedDict):
@@ -30,7 +30,7 @@ class SubscribeRequest(TypedDict):
 
 
 class _UnsubscribePayload(TypedDict):
-    request_id: str
+    requestId: str
 
 
 class UnsubscribeRequest(TypedDict):
@@ -50,9 +50,9 @@ class _OrderSubscriptionSnapshot(TypedDict):
 class OrderSnapshot(TypedDict):
     """Order snapshot message."""
 
-    request_id: str
-    subscription_type: Literal["SUBSCRIPTION_TYPE_ORDER"]
-    order_subscription_snapshot: _OrderSubscriptionSnapshot
+    requestId: str
+    subscriptionType: Literal["SUBSCRIPTION_TYPE_ORDER"]
+    orderSubscriptionSnapshot: _OrderSubscriptionSnapshot
 
 
 class _OrderSubscriptionUpdate(TypedDict):
@@ -62,9 +62,9 @@ class _OrderSubscriptionUpdate(TypedDict):
 class OrderUpdate(TypedDict):
     """Order update message."""
 
-    request_id: str
-    subscription_type: Literal["SUBSCRIPTION_TYPE_ORDER"]
-    order_subscription_update: _OrderSubscriptionUpdate
+    requestId: str
+    subscriptionType: Literal["SUBSCRIPTION_TYPE_ORDER"]
+    orderSubscriptionUpdate: _OrderSubscriptionUpdate
 
 
 class _PositionSubscriptionSnapshot(TypedDict):
@@ -75,48 +75,48 @@ class _PositionSubscriptionSnapshot(TypedDict):
 class PositionSnapshot(TypedDict):
     """Position snapshot message."""
 
-    request_id: str
-    subscription_type: Literal["SUBSCRIPTION_TYPE_POSITION"]
-    position_subscription_snapshot: _PositionSubscriptionSnapshot
+    requestId: str
+    subscriptionType: Literal["SUBSCRIPTION_TYPE_POSITION"]
+    positionSubscriptionSnapshot: _PositionSubscriptionSnapshot
 
 
 class _PositionSubscriptionUpdate(TypedDict):
-    market_slug: str
+    marketSlug: str
     position: UserPosition
 
 
 class PositionUpdate(TypedDict):
     """Position update message."""
 
-    request_id: str
-    subscription_type: Literal["SUBSCRIPTION_TYPE_POSITION"]
-    position_subscription_update: _PositionSubscriptionUpdate
+    requestId: str
+    subscriptionType: Literal["SUBSCRIPTION_TYPE_POSITION"]
+    positionSubscriptionUpdate: _PositionSubscriptionUpdate
 
 
 class _AccountBalanceSubscriptionSnapshot(TypedDict):
     balance: float
-    buying_power: float
+    buyingPower: float
 
 
 class AccountBalanceSnapshot(TypedDict):
     """Account balance snapshot message."""
 
-    request_id: str
-    subscription_type: Literal["SUBSCRIPTION_TYPE_ACCOUNT_BALANCE"]
-    account_balance_subscription_snapshot: _AccountBalanceSubscriptionSnapshot
+    requestId: str
+    subscriptionType: Literal["SUBSCRIPTION_TYPE_ACCOUNT_BALANCE"]
+    accountBalanceSubscriptionSnapshot: _AccountBalanceSubscriptionSnapshot
 
 
 class _AccountBalanceSubscriptionUpdate(TypedDict):
     balance: float
-    buying_power: float
+    buyingPower: float
 
 
 class AccountBalanceUpdate(TypedDict):
     """Account balance update message."""
 
-    request_id: str
-    subscription_type: Literal["SUBSCRIPTION_TYPE_ACCOUNT_BALANCE"]
-    account_balance_subscription_update: _AccountBalanceSubscriptionUpdate
+    requestId: str
+    subscriptionType: Literal["SUBSCRIPTION_TYPE_ACCOUNT_BALANCE"]
+    accountBalanceSubscriptionUpdate: _AccountBalanceSubscriptionUpdate
 
 
 class _OrderBookLevel(TypedDict):
@@ -125,43 +125,43 @@ class _OrderBookLevel(TypedDict):
 
 
 class _MarketDataStats(TypedDict, total=False):
-    last_trade_px: Amount
-    shares_traded: str
-    open_interest: str
-    high_px: Amount
-    low_px: Amount
+    lastTradePx: Amount
+    sharesTraded: str
+    openInterest: str
+    highPx: Amount
+    lowPx: Amount
 
 
 class _MarketDataPayload(TypedDict, total=False):
-    market_slug: str
+    marketSlug: str
     bids: list[_OrderBookLevel]
     offers: list[_OrderBookLevel]
     state: str
     stats: _MarketDataStats
-    transact_time: str
+    transactTime: str
 
 
 class MarketData(TypedDict):
     """Market data message (full order book)."""
 
-    request_id: str
-    subscription_type: Literal["SUBSCRIPTION_TYPE_MARKET_DATA"]
-    market_data: _MarketDataPayload
+    requestId: str
+    subscriptionType: Literal["SUBSCRIPTION_TYPE_MARKET_DATA"]
+    marketData: _MarketDataPayload
 
 
 class _MarketDataLitePayload(TypedDict, total=False):
-    market_slug: str
-    best_bid: Amount
-    best_ask: Amount
-    last_trade_px: Amount
+    marketSlug: str
+    bestBid: Amount
+    bestAsk: Amount
+    lastTradePx: Amount
 
 
 class MarketDataLite(TypedDict):
     """Market data lite message (best prices only)."""
 
-    request_id: str
-    subscription_type: Literal["SUBSCRIPTION_TYPE_MARKET_DATA_LITE"]
-    market_data_lite: _MarketDataLitePayload
+    requestId: str
+    subscriptionType: Literal["SUBSCRIPTION_TYPE_MARKET_DATA_LITE"]
+    marketDataLite: _MarketDataLitePayload
 
 
 class _TradeSide(TypedDict):
@@ -170,10 +170,10 @@ class _TradeSide(TypedDict):
 
 
 class _TradePayload(TypedDict):
-    market_slug: str
+    marketSlug: str
     price: Amount
     quantity: Amount
-    trade_time: str
+    tradeTime: str
     maker: _TradeSide
     taker: _TradeSide
 
@@ -181,8 +181,8 @@ class _TradePayload(TypedDict):
 class Trade(TypedDict):
     """Trade message."""
 
-    request_id: str
-    subscription_type: Literal["SUBSCRIPTION_TYPE_TRADE"]
+    requestId: str
+    subscriptionType: Literal["SUBSCRIPTION_TYPE_TRADE"]
     trade: _TradePayload
 
 
@@ -195,7 +195,7 @@ class Heartbeat(TypedDict):
 class WebSocketErrorMessage(TypedDict, total=False):
     """Error message."""
 
-    request_id: str
+    requestId: str
     error: str
 
 

@@ -21,8 +21,8 @@ class Series(TypedDict, total=False):
 class SeriesListParams(PaginationParams, total=False):
     """Parameters for listing series."""
 
-    order_by: list[str]
-    order_direction: Literal["asc", "desc"]
+    orderBy: list[str]
+    orderDirection: Literal["asc", "desc"]
     slug: list[str]
     archived: bool
     active: bool

@@ -8,11 +8,14 @@ import httpx
 
 from polymarket_us.auth import create_auth_headers
 from polymarket_us.errors import (
-    APIError,
+    APIConnectionError,
+    APIStatusError,
+    APITimeoutError,
     AuthenticationError,
     BadRequestError,
     InternalServerError,
     NotFoundError,
+    PermissionDeniedError,
     RateLimitError,
 )
 from polymarket_us.resources import (
@@ -80,16 +83,7 @@ class AsyncPolymarketUS:
         query: dict[str, Any] | None = None,
         authenticated: bool = False,
     ) -> Any:
-        """Make a GET request.
-
-        Args:
-            path: Request path
-            query: Query parameters
-            authenticated: Whether to use authentication
-
-        Returns:
-            Response data
-        """
+        """Make a GET request."""
         return await self._request("GET", path, query=query, authenticated=authenticated)
 
     async def post(
@@ -100,17 +94,7 @@ class AsyncPolymarketUS:
         body: dict[str, Any] | None = None,
         authenticated: bool = False,
     ) -> Any:
-        """Make a POST request.
-
-        Args:
-            path: Request path
-            query: Query parameters
-            body: Request body
-            authenticated: Whether to use authentication
-
-        Returns:
-            Response data
-        """
+        """Make a POST request."""
         return await self._request(
             "POST", path, query=query, body=body, authenticated=authenticated
         )
@@ -122,16 +106,7 @@ class AsyncPolymarketUS:
         query: dict[str, Any] | None = None,
         authenticated: bool = False,
     ) -> Any:
-        """Make a DELETE request.
-
-        Args:
-            path: Request path
-            query: Query parameters
-            authenticated: Whether to use authentication
-
-        Returns:
-            Response data
-        """
+        """Make a DELETE request."""
         return await self._request("DELETE", path, query=query, authenticated=authenticated)
 
     async def _request(
@@ -143,18 +118,7 @@ class AsyncPolymarketUS:
         body: dict[str, Any] | None = None,
         authenticated: bool = False,
     ) -> Any:
-        """Make an HTTP request.
-
-        Args:
-            method: HTTP method
-            path: Request path
-            query: Query parameters
-            body: Request body
-            authenticated: Whether to use authentication
-
-        Returns:
-            Response data
-        """
+        """Make an HTTP request."""
         base_url = self.api_base_url if authenticated else self.gateway_base_url
         url = f"{base_url}{path}"
 
@@ -164,21 +128,26 @@ class AsyncPolymarketUS:
             if not self.key_id or not self.secret_key:
                 raise AuthenticationError(
                     "API key credentials required for authenticated endpoints. "
-                    "Provide key_id and secret_key when initializing the client."
+                    "Provide key_id and secret_key when initializing the client.",
+                    response=_make_fake_response(401, url),
                 )
             auth_headers = create_auth_headers(self.key_id, self.secret_key, method, path)
             headers.update(auth_headers)
 
-        # Build query params, filtering None values
         params = self._build_query_params(query) if query else None
 
-        response = await self._http.request(
-            method,
-            url,
-            params=params,
-            json=body,
-            headers=headers,
-        )
+        try:
+            response = await self._http.request(
+                method,
+                url,
+                params=params,
+                json=body,
+                headers=headers,
+            )
+        except httpx.TimeoutException as e:
+            raise APITimeoutError(request=getattr(e, "_request", None))
+        except httpx.ConnectError as e:
+            raise APIConnectionError(message=str(e), request=getattr(e, "_request", None))
 
         if not response.is_success:
             self._handle_error_response(response)
@@ -206,25 +175,31 @@ class AsyncPolymarketUS:
 
     def _handle_error_response(self, response: httpx.Response) -> None:
         """Handle error response from the API."""
+        body: object | None = None
         try:
-            data = response.json()
-            message = data.get("message") or data.get("error") or response.reason_phrase
+            body = response.json()
+            if isinstance(body, dict):
+                message = body.get("message") or body.get("error") or response.reason_phrase
+            else:
+                message = response.reason_phrase or "Unknown error"
         except Exception:
             message = response.text or response.reason_phrase or "Unknown error"
 
         status = response.status_code
         if status == 400:
-            raise BadRequestError(message)
+            raise BadRequestError(message, response=response, body=body)
         elif status == 401:
-            raise AuthenticationError(message)
+            raise AuthenticationError(message, response=response, body=body)
+        elif status == 403:
+            raise PermissionDeniedError(message, response=response, body=body)
         elif status == 404:
-            raise NotFoundError(message)
+            raise NotFoundError(message, response=response, body=body)
         elif status == 429:
-            raise RateLimitError(message)
+            raise RateLimitError(message, response=response, body=body)
         elif status >= 500:
-            raise InternalServerError(message)
+            raise InternalServerError(message, response=response, body=body)
         else:
-            raise APIError(status, message)
+            raise APIStatusError(message, response=response, body=body)
 
     async def close(self) -> None:
         """Close the HTTP client."""
@@ -247,9 +222,9 @@ class _AsyncWebSocketFactory:
         if not self._client.key_id or not self._client.secret_key:
             raise AuthenticationError(
                 "API key credentials required for WebSocket connections. "
-                "Provide key_id and secret_key when initializing the client."
+                "Provide key_id and secret_key when initializing the client.",
+                response=_make_fake_response(401, "wss://api.polymarket.us"),
             )
-        # Convert HTTP URL to WebSocket URL
         url = self._client.api_base_url.replace("https://", "wss://").replace("http://", "ws://")
         return {
             "key_id": self._client.key_id,
@@ -268,3 +243,8 @@ class _AsyncWebSocketFactory:
         from polymarket_us.websocket import MarketsWebSocket
 
         return MarketsWebSocket(**self._get_ws_options())
+
+
+def _make_fake_response(status_code: int, url: str) -> httpx.Response:
+    """Create a fake response for errors raised before making a request."""
+    return httpx.Response(status_code=status_code, request=httpx.Request("GET", url))

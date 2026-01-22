@@ -6,110 +6,156 @@ import httpx
 import pytest
 
 from polymarket_us import (
+    APIConnectionError,
+    APITimeoutError,
     AuthenticationError,
     BadRequestError,
     InternalServerError,
     NotFoundError,
+    PermissionDeniedError,
     PolymarketUS,
     RateLimitError,
 )
 
 
 class TestHTTPErrors:
-    """Tests for HTTP error handling."""
+    """Tests for HTTP error responses."""
 
     @pytest.fixture
     def client(self) -> PolymarketUS:
         """Create a client."""
         return PolymarketUS()
 
-    @patch.object(httpx.Client, "request")
-    def test_400_raises_bad_request(self, mock_request: MagicMock, client: PolymarketUS) -> None:
-        """400 should raise BadRequestError."""
-        mock_response = MagicMock()
+    def _make_mock_response(
+        self, status_code: int, message: str, reason: str
+    ) -> MagicMock:
+        """Create a mock response."""
+        mock_response = MagicMock(spec=httpx.Response)
         mock_response.is_success = False
-        mock_response.status_code = 400
-        mock_response.text = '{"message": "Invalid parameters"}'
-        mock_response.json.return_value = {"message": "Invalid parameters"}
-        mock_response.reason_phrase = "Bad Request"
-        mock_request.return_value = mock_response
+        mock_response.status_code = status_code
+        mock_response.text = f'{{"message": "{message}"}}'
+        mock_response.json.return_value = {"message": message}
+        mock_response.reason_phrase = reason
+        mock_response.request = httpx.Request("GET", "http://test")
+        return mock_response
+
+    @patch.object(httpx.Client, "request")
+    def test_400_raises_bad_request(
+        self, mock_request: MagicMock, client: PolymarketUS
+    ) -> None:
+        """400 should raise BadRequestError."""
+        mock_request.return_value = self._make_mock_response(
+            400, "Invalid parameters", "Bad Request"
+        )
 
         with pytest.raises(BadRequestError) as exc_info:
             client.events.list()
 
         assert "Invalid parameters" in str(exc_info.value)
+        assert exc_info.value.status_code == 400
 
     @patch.object(httpx.Client, "request")
     def test_401_raises_authentication_error(
         self, mock_request: MagicMock, client: PolymarketUS
     ) -> None:
         """401 should raise AuthenticationError."""
-        mock_response = MagicMock()
-        mock_response.is_success = False
-        mock_response.status_code = 401
-        mock_response.text = '{"message": "Invalid API key"}'
-        mock_response.json.return_value = {"message": "Invalid API key"}
-        mock_response.reason_phrase = "Unauthorized"
-        mock_request.return_value = mock_response
+        mock_request.return_value = self._make_mock_response(
+            401, "Invalid API key", "Unauthorized"
+        )
 
-        with pytest.raises(AuthenticationError):
+        with pytest.raises(AuthenticationError) as exc_info:
             client.events.list()
 
-    @patch.object(httpx.Client, "request")
-    def test_404_raises_not_found(self, mock_request: MagicMock, client: PolymarketUS) -> None:
-        """404 should raise NotFoundError."""
-        mock_response = MagicMock()
-        mock_response.is_success = False
-        mock_response.status_code = 404
-        mock_response.text = '{"message": "Event not found"}'
-        mock_response.json.return_value = {"message": "Event not found"}
-        mock_response.reason_phrase = "Not Found"
-        mock_request.return_value = mock_response
+        assert exc_info.value.status_code == 401
 
-        with pytest.raises(NotFoundError):
+    @patch.object(httpx.Client, "request")
+    def test_403_raises_permission_denied(
+        self, mock_request: MagicMock, client: PolymarketUS
+    ) -> None:
+        """403 should raise PermissionDeniedError."""
+        mock_request.return_value = self._make_mock_response(403, "Forbidden", "Forbidden")
+
+        with pytest.raises(PermissionDeniedError) as exc_info:
+            client.events.list()
+
+        assert exc_info.value.status_code == 403
+
+    @patch.object(httpx.Client, "request")
+    def test_404_raises_not_found(
+        self, mock_request: MagicMock, client: PolymarketUS
+    ) -> None:
+        """404 should raise NotFoundError."""
+        mock_request.return_value = self._make_mock_response(
+            404, "Event not found", "Not Found"
+        )
+
+        with pytest.raises(NotFoundError) as exc_info:
             client.events.retrieve(99999)
 
-    @patch.object(httpx.Client, "request")
-    def test_429_raises_rate_limit(self, mock_request: MagicMock, client: PolymarketUS) -> None:
-        """429 should raise RateLimitError."""
-        mock_response = MagicMock()
-        mock_response.is_success = False
-        mock_response.status_code = 429
-        mock_response.text = '{"message": "Too many requests"}'
-        mock_response.json.return_value = {"message": "Too many requests"}
-        mock_response.reason_phrase = "Too Many Requests"
-        mock_request.return_value = mock_response
+        assert exc_info.value.status_code == 404
 
-        with pytest.raises(RateLimitError):
+    @patch.object(httpx.Client, "request")
+    def test_429_raises_rate_limit(
+        self, mock_request: MagicMock, client: PolymarketUS
+    ) -> None:
+        """429 should raise RateLimitError."""
+        mock_request.return_value = self._make_mock_response(
+            429, "Too many requests", "Too Many Requests"
+        )
+
+        with pytest.raises(RateLimitError) as exc_info:
             client.events.list()
+
+        assert exc_info.value.status_code == 429
 
     @patch.object(httpx.Client, "request")
     def test_500_raises_internal_server_error(
         self, mock_request: MagicMock, client: PolymarketUS
     ) -> None:
         """500 should raise InternalServerError."""
-        mock_response = MagicMock()
-        mock_response.is_success = False
-        mock_response.status_code = 500
-        mock_response.text = '{"message": "Internal error"}'
-        mock_response.json.return_value = {"message": "Internal error"}
-        mock_response.reason_phrase = "Internal Server Error"
-        mock_request.return_value = mock_response
+        mock_request.return_value = self._make_mock_response(
+            500, "Internal error", "Internal Server Error"
+        )
 
-        with pytest.raises(InternalServerError):
+        with pytest.raises(InternalServerError) as exc_info:
             client.events.list()
+
+        assert exc_info.value.status_code == 500
 
     @patch.object(httpx.Client, "request")
     def test_502_raises_internal_server_error(
         self, mock_request: MagicMock, client: PolymarketUS
     ) -> None:
         """502 should raise InternalServerError."""
-        mock_response = MagicMock()
+        mock_response = MagicMock(spec=httpx.Response)
         mock_response.is_success = False
         mock_response.status_code = 502
         mock_response.text = ""
         mock_response.reason_phrase = "Bad Gateway"
+        mock_response.request = httpx.Request("GET", "http://test")
         mock_request.return_value = mock_response
 
-        with pytest.raises(InternalServerError):
+        with pytest.raises(InternalServerError) as exc_info:
+            client.events.list()
+
+        assert exc_info.value.status_code == 502
+
+    @patch.object(httpx.Client, "request")
+    def test_timeout_raises_timeout_error(
+        self, mock_request: MagicMock, client: PolymarketUS
+    ) -> None:
+        """Timeout should raise APITimeoutError."""
+        mock_request.side_effect = httpx.TimeoutException("Connection timed out")
+
+        with pytest.raises(APITimeoutError):
+            client.events.list()
+
+    @patch.object(httpx.Client, "request")
+    def test_connection_error_raises_connection_error(
+        self, mock_request: MagicMock, client: PolymarketUS
+    ) -> None:
+        """Connection error should raise APIConnectionError."""
+        mock_request.side_effect = httpx.ConnectError("Failed to connect")
+
+        with pytest.raises(APIConnectionError):
             client.events.list()
