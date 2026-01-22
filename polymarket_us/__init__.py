@@ -37,15 +37,8 @@ __all__ = [
 ]
 
 try:
-    from importlib.metadata import version
+    from importlib.metadata import version as _version
 
-    __version__ = version("polymarket-us")
-except ImportError:
-    # Fallback for Python < 3.8
-    try:
-        from importlib_metadata import version
-
-        __version__ = version("polymarket-us")
-    except ImportError:
-        # Fallback if package not installed
-        __version__ = "0.1.0"
+    __version__ = _version("polymarket-us")
+except Exception:
+    __version__ = "0.1.0"
