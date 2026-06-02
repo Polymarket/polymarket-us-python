@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import time
 import uuid
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NoReturn
 
 import httpx
 
@@ -222,7 +222,7 @@ class PolymarketUS:
 
     def _handle_error_response(
         self, response: httpx.Response, correlation_id: str | None = None
-    ) -> None:
+    ) -> NoReturn:
         """Raise the appropriate typed error for an unsuccessful response."""
         body: object | None = None
         try:

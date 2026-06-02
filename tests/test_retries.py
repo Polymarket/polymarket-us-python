@@ -10,6 +10,7 @@ from polymarket_us import (
     BadRequestError,
     InternalServerError,
     PolymarketUS,
+    _retry,
 )
 
 TEST_SECRET_KEY = "nWGxne/9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A="
@@ -21,6 +22,17 @@ def _response(status_code: int, payload: dict | None = None) -> httpx.Response:
         json=payload if payload is not None else {"message": "error"},
         request=httpx.Request("GET", "http://test"),
     )
+
+
+class TestBackoff:
+    """Backoff delay computation."""
+
+    def test_clamps_retry_after_to_ceiling(self) -> None:
+        assert _retry.backoff_delay(0, retry_after=3600) == _retry._BACKOFF_MAX_SECONDS
+        assert _retry.backoff_delay(0, retry_after=float("inf")) == _retry._BACKOFF_MAX_SECONDS
+
+    def test_honors_small_retry_after(self) -> None:
+        assert _retry.backoff_delay(5, retry_after=1.5) == 1.5
 
 
 class TestSyncRetries:

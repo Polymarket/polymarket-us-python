@@ -36,11 +36,13 @@ def can_retry_method(method: str) -> bool:
 def backoff_delay(attempt: int, retry_after: float | None = None) -> float:
     """Compute the delay before the next retry attempt (0-indexed).
 
-    Honors an explicit ``Retry-After`` value when present; otherwise applies
-    exponential backoff with equal jitter to avoid thundering-herd retries.
+    Honors an explicit ``Retry-After`` value when present (clamped to
+    ``_BACKOFF_MAX_SECONDS`` so a hostile or malformed header cannot make the
+    client sleep indefinitely); otherwise applies exponential backoff with equal
+    jitter to avoid thundering-herd retries.
     """
     if retry_after is not None and retry_after >= 0:
-        return retry_after
+        return min(retry_after, _BACKOFF_MAX_SECONDS)
     capped = min(_BACKOFF_INITIAL_SECONDS * (2**attempt), _BACKOFF_MAX_SECONDS)
     return capped / 2 + random.random() * (capped / 2)
 
