@@ -1,11 +1,20 @@
 """Markets resource."""
 
+from collections.abc import AsyncIterator, Iterator
+from typing import Any
+
+from polymarket_us.pagination import (
+    DEFAULT_PAGE_SIZE,
+    paginate_offset,
+    paginate_offset_async,
+)
 from polymarket_us.resource import APIResource, AsyncAPIResource
 from polymarket_us.types import (
     GetMarketResponse,
     GetMarketsResponse,
     MarketBBO,
     MarketBook,
+    MarketDetail,
     MarketSettlement,
     MarketsListParams,
 )
@@ -17,6 +26,22 @@ class Markets(APIResource):
     def list(self, params: MarketsListParams | None = None) -> GetMarketsResponse:
         """List markets with optional filtering."""
         return self._client.get("/v1/markets", query=dict(params) if params else None)
+
+    def iterate(
+        self,
+        params: MarketsListParams | None = None,
+        *,
+        page_size: int = DEFAULT_PAGE_SIZE,
+    ) -> Iterator[MarketDetail]:
+        """Iterate over all markets across pages, fetching them lazily."""
+
+        def fetch(offset: int, limit: int) -> dict[str, Any]:
+            query: dict[str, Any] = dict(params) if params else {}
+            query["limit"] = limit
+            query["offset"] = offset
+            return self._client.get("/v1/markets", query=query)
+
+        return paginate_offset(fetch, "markets", page_size)
 
     def retrieve(self, id: int) -> GetMarketResponse:
         """Get a market by ID."""
@@ -45,6 +70,22 @@ class AsyncMarkets(AsyncAPIResource):
     async def list(self, params: MarketsListParams | None = None) -> GetMarketsResponse:
         """List markets with optional filtering."""
         return await self._client.get("/v1/markets", query=dict(params) if params else None)
+
+    def iterate(
+        self,
+        params: MarketsListParams | None = None,
+        *,
+        page_size: int = DEFAULT_PAGE_SIZE,
+    ) -> AsyncIterator[MarketDetail]:
+        """Iterate over all markets across pages, fetching them lazily."""
+
+        async def fetch(offset: int, limit: int) -> dict[str, Any]:
+            query: dict[str, Any] = dict(params) if params else {}
+            query["limit"] = limit
+            query["offset"] = offset
+            return await self._client.get("/v1/markets", query=query)
+
+        return paginate_offset_async(fetch, "markets", page_size)
 
     async def retrieve(self, id: int) -> GetMarketResponse:
         """Get a market by ID."""

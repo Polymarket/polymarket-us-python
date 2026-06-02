@@ -108,6 +108,29 @@ async def main():
 asyncio.run(main())
 ```
 
+## Pagination
+
+List endpoints expose `iterate()` helpers that transparently page through all
+results. Offset-paginated resources (`events`, `markets`, `series`) and the
+cursor-paginated activity feed are both supported:
+
+```python
+# Offset-paginated resources
+for market in client.markets.iterate({"active": True}):
+    print(market["slug"])
+
+# Cursor-paginated activity history (authenticated)
+for activity in client.portfolio.iterate_activities():
+    print(activity["type"])
+```
+
+Async clients return async iterators:
+
+```python
+async for market in async_client.markets.iterate({"active": True}):
+    print(market["slug"])
+```
+
 ## Authentication
 
 Polymarket US uses Ed25519 signature authentication. Generate API keys at [polymarket.us/developer](https://polymarket.us/developer).
