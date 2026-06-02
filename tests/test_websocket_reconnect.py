@@ -1,7 +1,7 @@
 """Tests for WebSocket auto-reconnect, resubscribe, and auth handling."""
 
 import asyncio
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -168,6 +168,41 @@ class TestReconnectRobustness:
 
         assert result is False
         ws._resubscribe.assert_not_called()
+
+
+class _OneMessageSocket:
+    """Minimal async-iterable socket that yields one message then stops."""
+
+    def __init__(self) -> None:
+        self.close = AsyncMock()
+        self._yielded = False
+
+    def __aiter__(self) -> "_OneMessageSocket":
+        return self
+
+    async def __anext__(self) -> str:
+        if self._yielded:
+            raise StopAsyncIteration
+        self._yielded = True
+        return "msg"
+
+
+class TestRunSocketCleanup:
+    """_run closes a still-open socket before reconnecting."""
+
+    async def test_closes_socket_before_reconnect_on_handler_error(
+        self, client: PolymarketUS
+    ) -> None:
+        ws = client.ws.private()
+        socket = _OneMessageSocket()
+        ws._ws = socket  # type: ignore[assignment]
+        ws._handle_message = MagicMock(side_effect=RuntimeError("boom"))
+        ws._reconnect = AsyncMock(return_value=False)
+
+        await ws._run()
+
+        socket.close.assert_awaited()
+        ws._reconnect.assert_awaited()
 
 
 class TestClose:

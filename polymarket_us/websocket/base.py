@@ -123,6 +123,13 @@ class BaseWebSocket:
             except Exception as e:
                 self._emit("error", PolymarketUSError(str(e)))
 
+            # The loop may have exited on a still-open socket (e.g. a handler
+            # error rather than a drop). Close it before reconnecting so the old
+            # connection isn't leaked when _open_socket overwrites self._ws.
+            with contextlib.suppress(Exception):
+                if self._ws is not None:
+                    await self._ws.close(1000, "OK")
+
             if self._closed or not self.auto_reconnect:
                 if not self._closed:
                     self._emit("close")
