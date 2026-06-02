@@ -156,8 +156,29 @@ except APIConnectionError as e:
 client = PolymarketUS(
     key_id="your-key-id",
     secret_key="your-secret-key",
-    timeout=30.0,  # Request timeout in seconds (default: 30.0)
+    timeout=30.0,      # Request timeout in seconds (default: 30.0)
+    max_retries=2,     # Automatic retries for idempotent requests (default: 2)
 )
+```
+
+### Retries & reliability
+
+Idempotent requests (`GET`, `DELETE`) are retried automatically on transient
+failures — connection errors, timeouts, and `408`/`409`/`429`/`5xx` responses —
+using exponential backoff with jitter. Non-idempotent requests such as order
+placement are **never** retried automatically, so a network blip cannot submit a
+duplicate order. Set `max_retries=0` to disable retries.
+
+Every request sends a `User-Agent` and a generated `poly-correlation-id` so
+failures can be traced. The correlation id is attached to raised errors:
+
+```python
+from polymarket_us import APIError
+
+try:
+    client.account.balances()
+except APIError as e:
+    print(e.status_code, e.message, e.request_id)
 ```
 
 ### WebSocket (Real-Time Data)

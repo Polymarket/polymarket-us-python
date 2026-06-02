@@ -23,8 +23,8 @@ class TestHTTPErrors:
 
     @pytest.fixture
     def client(self) -> PolymarketUS:
-        """Create a client."""
-        return PolymarketUS()
+        """Create a client with retries disabled to isolate status-code mapping."""
+        return PolymarketUS(max_retries=0)
 
     def _make_mock_response(self, status_code: int, message: str, reason: str) -> MagicMock:
         """Create a mock response."""
@@ -34,6 +34,7 @@ class TestHTTPErrors:
         mock_response.text = f'{{"message": "{message}"}}'
         mock_response.json.return_value = {"message": message}
         mock_response.reason_phrase = reason
+        mock_response.headers = {}
         mock_response.request = httpx.Request("GET", "http://test")
         return mock_response
 
@@ -120,6 +121,7 @@ class TestHTTPErrors:
         mock_response.status_code = 502
         mock_response.text = ""
         mock_response.reason_phrase = "Bad Gateway"
+        mock_response.headers = {}
         mock_response.request = httpx.Request("GET", "http://test")
         mock_request.return_value = mock_response
 

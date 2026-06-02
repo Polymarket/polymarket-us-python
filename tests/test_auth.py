@@ -64,12 +64,15 @@ class TestCreateAuthHeaders:
 
     def test_handles_64_byte_key(self) -> None:
         """Should handle 64-byte keys (uses first 32 bytes)."""
+        import base64
+
         # 64-byte key (seed + public key), base64 encoded
-        secret_key_64 = "nWGxne/9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A=" * 2
+        seed = base64.b64decode("nWGxne/9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A=")
+        secret_key_64 = base64.b64encode(seed + seed).decode()
         # Should not raise
         headers = create_auth_headers(
             key_id="test",
-            secret_key=secret_key_64[:88],  # 64 bytes in base64
+            secret_key=secret_key_64,
             method="GET",
             path="/v1/test",
         )
