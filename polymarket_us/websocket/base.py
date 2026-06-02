@@ -129,7 +129,8 @@ class BaseWebSocket:
                 return
 
             if not await self._reconnect():
-                self._emit("close")
+                if not self._closed:
+                    self._emit("close")
                 return
 
     async def _reconnect(self) -> bool:
@@ -150,8 +151,17 @@ class BaseWebSocket:
                     return False
                 attempt += 1
                 continue
+            # The user may have called close() while the upgrade was in flight.
+            if self._closed:
+                return False
+            # If the fresh connection drops mid-replay, treat it as another
+            # failed attempt rather than letting the exception kill the task.
+            try:
+                await self._resubscribe()
+            except Exception:
+                attempt += 1
+                continue
             self._emit("reconnect")
-            await self._resubscribe()
             return True
         return False
 
@@ -221,12 +231,15 @@ class BaseWebSocket:
     async def close(self) -> None:
         """Close the WebSocket connection and stop reconnecting."""
         self._closed = True
-        if self._ws:
-            await self._ws.close(1000, "OK")
+        # Cancel first so an in-flight reconnect (sleeping or mid-handshake) is
+        # interrupted rather than left to open a socket close() never sees.
         if self._run_task:
+            self._run_task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await self._run_task
             self._run_task = None
+        if self._ws:
+            await self._ws.close(1000, "OK")
         self._ws = None
 
     @property

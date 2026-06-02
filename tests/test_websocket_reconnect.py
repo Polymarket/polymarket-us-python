@@ -1,5 +1,6 @@
 """Tests for WebSocket auto-reconnect, resubscribe, and auth handling."""
 
+import asyncio
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -123,3 +124,58 @@ class TestUpgradeStatus:
 
     def test_no_status(self) -> None:
         assert _upgrade_status(ConnectionError("network")) is None
+
+
+class TestReconnectRobustness:
+    """Reconnect survives resubscribe drops and honors close during handshake."""
+
+    @patch("asyncio.sleep", new_callable=AsyncMock)
+    async def test_retries_when_resubscribe_fails(
+        self, _sleep: AsyncMock, client: PolymarketUS
+    ) -> None:
+        ws = client.ws.private()
+        ws._open_socket = AsyncMock()
+        ws._resubscribe = AsyncMock(side_effect=[RuntimeError("dropped"), None])
+
+        result = await ws._reconnect()
+
+        assert result is True
+        assert ws._open_socket.call_count == 2
+        assert ws._resubscribe.call_count == 2
+
+    @patch("asyncio.sleep", new_callable=AsyncMock)
+    async def test_aborts_when_closed_after_open(
+        self, _sleep: AsyncMock, client: PolymarketUS
+    ) -> None:
+        ws = client.ws.private()
+
+        async def _open() -> None:
+            ws._closed = True
+
+        ws._open_socket = AsyncMock(side_effect=_open)
+        ws._resubscribe = AsyncMock()
+
+        result = await ws._reconnect()
+
+        assert result is False
+        ws._resubscribe.assert_not_called()
+
+
+class TestClose:
+    """close() interrupts an in-flight run task."""
+
+    async def test_close_cancels_run_task(self, client: PolymarketUS) -> None:
+        ws = client.ws.private()
+        ws._ws = AsyncMock()
+
+        async def _forever() -> None:
+            await asyncio.sleep(3600)
+
+        task = asyncio.create_task(_forever())
+        ws._run_task = task
+
+        await ws.close()
+
+        assert ws._closed is True
+        assert task.cancelled()
+        assert ws._run_task is None
