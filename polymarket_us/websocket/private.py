@@ -1,6 +1,7 @@
 """Private WebSocket."""
 
 import json
+from typing import Any
 
 from polymarket_us.errors import PolymarketUSError, WebSocketError
 
@@ -11,7 +12,7 @@ from .types import PrivateSubscriptionType
 class PrivateWebSocket(BaseWebSocket):
     """WebSocket for private data (orders, positions, balances)."""
 
-    def __init__(self, **kwargs: str) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         """Initialize private WebSocket."""
         super().__init__(path="/v1/ws/private", **kwargs)
 

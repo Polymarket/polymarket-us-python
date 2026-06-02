@@ -1,6 +1,7 @@
 """Markets WebSocket."""
 
 import json
+from typing import Any
 
 from polymarket_us.errors import PolymarketUSError, WebSocketError
 
@@ -11,7 +12,7 @@ from .types import MarketSubscriptionType
 class MarketsWebSocket(BaseWebSocket):
     """WebSocket for market data (order book, trades)."""
 
-    def __init__(self, **kwargs: str) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         """Initialize markets WebSocket."""
         super().__init__(path="/v1/ws/markets", **kwargs)
 

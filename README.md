@@ -165,6 +165,14 @@ client = PolymarketUS(
 > **Note**: WebSocket connections are async-only due to their event-driven nature.
 > Use `asyncio.run()` when working with the sync client, or use `AsyncPolymarketUS` directly.
 
+> **Reconnection**: connections automatically reconnect with exponential backoff
+> on unexpected drops, re-sign the auth handshake, and replay every active
+> subscription. A `reconnect` event fires after a successful reconnect. Reconnect
+> stops on fatal auth failures (401/403/429). Disable with `auto_reconnect=False`.
+> Note that `order`, `position`, and `trade` streams do not replay history on
+> reconnect; resubscribe to `SUBSCRIPTION_TYPE_ORDER_SNAPSHOT` if you need current
+> open orders, while market data and account balance snapshots are sent automatically.
+
 ```python
 import asyncio
 import os
@@ -297,6 +305,7 @@ WebSocket methods (`connect()`, `subscribe()`, `close()`) are async and must be 
 - `account_balance_snapshot` - Initial balance
 - `account_balance_update` - Balance changes
 - `heartbeat` - Connection keepalive
+- `reconnect` - Reconnected and resubscribed after a drop
 - `error` - Error events
 - `close` - Connection closed
 
@@ -305,6 +314,7 @@ WebSocket methods (`connect()`, `subscribe()`, `close()`) are async and must be 
 - `market_data_lite` - Lightweight price data
 - `trade` - Trade notifications
 - `heartbeat` - Connection keepalive
+- `reconnect` - Reconnected and resubscribed after a drop
 - `error` - Error events
 - `close` - Connection closed
 
