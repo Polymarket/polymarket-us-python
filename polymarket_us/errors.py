@@ -15,6 +15,7 @@ class APIError(PolymarketUSError):
     message: str
     request: httpx.Request | None
     body: object | None
+    request_id: str | None
 
     def __init__(
         self,
@@ -22,14 +23,18 @@ class APIError(PolymarketUSError):
         *,
         request: httpx.Request | None = None,
         body: object | None = None,
+        request_id: str | None = None,
     ) -> None:
         super().__init__(message)
         self.message = message
         self.request = request
         self.body = body
+        self.request_id = request_id
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(message={self.message!r})"
+        return (
+            f"{self.__class__.__name__}(message={self.message!r}, request_id={self.request_id!r})"
+        )
 
 
 class APIConnectionError(APIError):
@@ -40,15 +45,18 @@ class APIConnectionError(APIError):
         *,
         message: str = "Connection error.",
         request: httpx.Request | None = None,
+        request_id: str | None = None,
     ) -> None:
-        super().__init__(message, request=request, body=None)
+        super().__init__(message, request=request, body=None, request_id=request_id)
 
 
 class APITimeoutError(APIConnectionError):
     """Request timed out."""
 
-    def __init__(self, *, request: httpx.Request | None = None) -> None:
-        super().__init__(message="Request timed out.", request=request)
+    def __init__(
+        self, *, request: httpx.Request | None = None, request_id: str | None = None
+    ) -> None:
+        super().__init__(message="Request timed out.", request=request, request_id=request_id)
 
 
 class APIStatusError(APIError):
@@ -58,15 +66,21 @@ class APIStatusError(APIError):
     status_code: int
 
     def __init__(
-        self, message: str, *, response: httpx.Response, body: object | None = None
+        self,
+        message: str,
+        *,
+        response: httpx.Response,
+        body: object | None = None,
+        request_id: str | None = None,
     ) -> None:
-        super().__init__(message, request=response.request, body=body)
+        super().__init__(message, request=response.request, body=body, request_id=request_id)
         self.response = response
         self.status_code = response.status_code
 
     def __repr__(self) -> str:
         return (
-            f"{self.__class__.__name__}(status_code={self.status_code}, message={self.message!r})"
+            f"{self.__class__.__name__}(status_code={self.status_code}, "
+            f"message={self.message!r}, request_id={self.request_id!r})"
         )
 
 

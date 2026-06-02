@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import time
+import uuid
 from typing import TYPE_CHECKING, Any
 
 import httpx
 
+from polymarket_us import _retry
 from polymarket_us.auth import create_auth_headers
 from polymarket_us.errors import (
     APIConnectionError,
@@ -35,6 +38,19 @@ if TYPE_CHECKING:
 GATEWAY_BASE_URL = "https://gateway.polymarket.us"
 API_BASE_URL = "https://api.polymarket.us"
 
+# Correlation id sent with every request so failures can be traced server-side.
+CORRELATION_ID_HEADER = "poly-correlation-id"
+
+
+def default_user_agent() -> str:
+    """Return the SDK User-Agent string, including the installed version."""
+    try:
+        from importlib.metadata import version
+
+        return f"polymarket-us-python/{version('polymarket-us')}"
+    except Exception:
+        return "polymarket-us-python/unknown"
+
 
 class PolymarketUS:
     """Synchronous client for the Polymarket US API."""
@@ -47,6 +63,7 @@ class PolymarketUS:
         gateway_base_url: str = GATEWAY_BASE_URL,
         api_base_url: str = API_BASE_URL,
         timeout: float = 30.0,
+        max_retries: int = _retry.DEFAULT_MAX_RETRIES,
     ) -> None:
         """Initialize the Polymarket US client.
 
@@ -56,13 +73,18 @@ class PolymarketUS:
             gateway_base_url: Base URL for public gateway API
             api_base_url: Base URL for authenticated API
             timeout: Request timeout in seconds
+            max_retries: Maximum automatic retries for idempotent requests on
+                transient failures (timeouts, connection errors, and 408/409/429/5xx).
+                Non-idempotent requests (e.g. order placement) are never retried.
         """
         self.key_id = key_id
         self.secret_key = secret_key
         self.gateway_base_url = gateway_base_url
         self.api_base_url = api_base_url
         self.timeout = timeout
+        self.max_retries = max_retries
 
+        self._user_agent = default_user_agent()
         self._http = httpx.Client(timeout=timeout)
 
         # Resource instances
@@ -116,43 +138,70 @@ class PolymarketUS:
         body: dict[str, Any] | None = None,
         authenticated: bool = False,
     ) -> Any:
-        """Make an HTTP request."""
+        """Make an HTTP request, retrying idempotent requests on transient errors."""
         base_url = self.api_base_url if authenticated else self.gateway_base_url
         url = f"{base_url}{path}"
 
-        headers = {"Content-Type": "application/json"}
-
-        if authenticated:
-            if not self.key_id or not self.secret_key:
-                raise AuthenticationError(
-                    "API key credentials required for authenticated endpoints. "
-                    "Provide key_id and secret_key when initializing the client.",
-                    response=_make_fake_response(401, url),
-                )
-            auth_headers = create_auth_headers(self.key_id, self.secret_key, method, path)
-            headers.update(auth_headers)
+        if authenticated and (not self.key_id or not self.secret_key):
+            raise AuthenticationError(
+                "API key credentials required for authenticated endpoints. "
+                "Provide key_id and secret_key when initializing the client.",
+                response=_make_fake_response(401, url),
+            )
 
         params = self._build_query_params(query) if query else None
+        correlation_id = str(uuid.uuid4())
+        base_headers = {
+            "Content-Type": "application/json",
+            "User-Agent": self._user_agent,
+            CORRELATION_ID_HEADER: correlation_id,
+        }
 
-        try:
-            response = self._http.request(
-                method,
-                url,
-                params=params,
-                json=body,
-                headers=headers,
-            )
-        except httpx.TimeoutException as e:
-            raise APITimeoutError(request=getattr(e, "_request", None))
-        except httpx.ConnectError as e:
-            raise APIConnectionError(message=str(e), request=getattr(e, "_request", None))
+        attempt = 0
+        while True:
+            headers = dict(base_headers)
+            if authenticated:
+                headers.update(
+                    create_auth_headers(self.key_id, self.secret_key, method, path)  # type: ignore[arg-type]
+                )
 
-        if not response.is_success:
-            self._handle_error_response(response)
+            try:
+                response = self._http.request(
+                    method, url, params=params, json=body, headers=headers
+                )
+            except httpx.TimeoutException as e:
+                if _retry.can_retry_method(method) and attempt < self.max_retries:
+                    time.sleep(_retry.backoff_delay(attempt))
+                    attempt += 1
+                    continue
+                raise APITimeoutError(
+                    request=getattr(e, "_request", None), request_id=correlation_id
+                )
+            except httpx.TransportError as e:
+                if _retry.can_retry_method(method) and attempt < self.max_retries:
+                    time.sleep(_retry.backoff_delay(attempt))
+                    attempt += 1
+                    continue
+                raise APIConnectionError(
+                    message=str(e), request=getattr(e, "_request", None), request_id=correlation_id
+                )
 
-        if not response.text:
-            return {}
-        return response.json()
+            if response.is_success:
+                if not response.text:
+                    return {}
+                return response.json()
+
+            if (
+                _retry.is_retryable_status(response.status_code)
+                and _retry.can_retry_method(method)
+                and attempt < self.max_retries
+            ):
+                retry_after = _retry.retry_after_seconds(response.headers.get("Retry-After"))
+                time.sleep(_retry.backoff_delay(attempt, retry_after))
+                attempt += 1
+                continue
+
+            self._handle_error_response(response, correlation_id)
 
     def _build_query_params(
         self, query: dict[str, Any]
@@ -171,8 +220,10 @@ class PolymarketUS:
                 params.append((key, str(value)))
         return params
 
-    def _handle_error_response(self, response: httpx.Response) -> None:
-        """Handle error response from the API."""
+    def _handle_error_response(
+        self, response: httpx.Response, correlation_id: str | None = None
+    ) -> None:
+        """Raise the appropriate typed error for an unsuccessful response."""
         body: object | None = None
         try:
             body = response.json()
@@ -183,21 +234,29 @@ class PolymarketUS:
         except Exception:
             message = response.text or response.reason_phrase or "Unknown error"
 
+        request_id = (
+            response.headers.get(CORRELATION_ID_HEADER)
+            or response.headers.get("x-request-id")
+            or correlation_id
+        )
+
         status = response.status_code
         if status == 400:
-            raise BadRequestError(message, response=response, body=body)
+            raise BadRequestError(message, response=response, body=body, request_id=request_id)
         elif status == 401:
-            raise AuthenticationError(message, response=response, body=body)
+            raise AuthenticationError(message, response=response, body=body, request_id=request_id)
         elif status == 403:
-            raise PermissionDeniedError(message, response=response, body=body)
+            raise PermissionDeniedError(
+                message, response=response, body=body, request_id=request_id
+            )
         elif status == 404:
-            raise NotFoundError(message, response=response, body=body)
+            raise NotFoundError(message, response=response, body=body, request_id=request_id)
         elif status == 429:
-            raise RateLimitError(message, response=response, body=body)
+            raise RateLimitError(message, response=response, body=body, request_id=request_id)
         elif status >= 500:
-            raise InternalServerError(message, response=response, body=body)
+            raise InternalServerError(message, response=response, body=body, request_id=request_id)
         else:
-            raise APIStatusError(message, response=response, body=body)
+            raise APIStatusError(message, response=response, body=body, request_id=request_id)
 
     def close(self) -> None:
         """Close the HTTP client."""
