@@ -22,6 +22,7 @@ def paginate_offset(
     page_size: int = DEFAULT_PAGE_SIZE,
 ) -> Iterator[Any]:
     """Yield items across offset-paginated pages until a short page is returned."""
+    page_size = max(1, page_size)
     offset = 0
     while True:
         page = fetch(offset, page_size)
@@ -55,6 +56,7 @@ async def paginate_offset_async(
     page_size: int = DEFAULT_PAGE_SIZE,
 ) -> AsyncIterator[Any]:
     """Async variant of :func:`paginate_offset`."""
+    page_size = max(1, page_size)
     offset = 0
     while True:
         page = await fetch(offset, page_size)

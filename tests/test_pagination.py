@@ -43,6 +43,20 @@ class TestOffsetPagination:
         assert mock_request.call_count == 2
 
     @patch.object(httpx.Client, "request")
+    def test_non_positive_page_size_terminates(self, mock_request: MagicMock) -> None:
+        # page_size <= 0 must be clamped so the loop cannot spin forever.
+        mock_request.side_effect = [
+            _json({"events": [{"id": 1}]}),
+            _json({"events": []}),
+        ]
+        client = PolymarketUS()
+
+        events = list(client.events.iterate(page_size=0))
+
+        assert [e["id"] for e in events] == [1]
+        assert mock_request.call_count == 2
+
+    @patch.object(httpx.Client, "request")
     def test_single_short_page_stops_immediately(self, mock_request: MagicMock) -> None:
         mock_request.side_effect = [_json({"series": [{"id": 1}]})]
         client = PolymarketUS()
