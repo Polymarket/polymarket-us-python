@@ -134,7 +134,14 @@ class TestReconnectRobustness:
         self, _sleep: AsyncMock, client: PolymarketUS
     ) -> None:
         ws = client.ws.private()
-        ws._open_socket = AsyncMock()
+        sockets: list[AsyncMock] = []
+
+        async def _open() -> None:
+            socket = AsyncMock()
+            sockets.append(socket)
+            ws._ws = socket
+
+        ws._open_socket = AsyncMock(side_effect=_open)
         ws._resubscribe = AsyncMock(side_effect=[RuntimeError("dropped"), None])
 
         result = await ws._reconnect()
@@ -142,6 +149,8 @@ class TestReconnectRobustness:
         assert result is True
         assert ws._open_socket.call_count == 2
         assert ws._resubscribe.call_count == 2
+        # The socket whose resubscribe failed must be closed, not leaked.
+        sockets[0].close.assert_awaited()
 
     @patch("asyncio.sleep", new_callable=AsyncMock)
     async def test_aborts_when_closed_after_open(

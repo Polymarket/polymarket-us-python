@@ -159,6 +159,11 @@ class BaseWebSocket:
             try:
                 await self._resubscribe()
             except Exception:
+                # Close the just-opened socket before retrying so it isn't
+                # orphaned when the next attempt overwrites self._ws.
+                with contextlib.suppress(Exception):
+                    if self._ws:
+                        await self._ws.close(1000, "OK")
                 attempt += 1
                 continue
             self._emit("reconnect")
