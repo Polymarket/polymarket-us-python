@@ -75,9 +75,9 @@ class Order(TypedDict, total=False):
     side: OrderSide
     type: OrderType
     price: Amount
-    quantity: int
-    cumQuantity: int
-    leavesQuantity: int
+    quantity: int | float
+    cumQuantity: int | float
+    leavesQuantity: int | float
     tif: TimeInForce
     goodTillTime: str
     intent: OrderIntent
@@ -115,7 +115,7 @@ class CreateOrderParams(TypedDict, total=False):
     intent: OrderIntent  # Required
     type: OrderType
     price: Amount
-    quantity: int
+    quantity: int | float
     tif: TimeInForce
     participateDontInitiate: bool
     goodTillTime: str
@@ -138,7 +138,7 @@ class ModifyOrderParams(TypedDict, total=False):
 
     marketSlug: str  # Required
     price: Amount
-    quantity: int
+    quantity: int | float
     tif: TimeInForce
     participateDontInitiate: bool
     goodTillTime: str
