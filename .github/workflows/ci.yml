@@ -49,7 +49,7 @@ jobs:
         run: uv sync --all-extras
 
       - name: Run mypy
-        run: uv run mypy polymarket_us
+        run: uv run mypy polymarket_us tests/types/order_snapshot.py
 
   test:
     runs-on: ubuntu-latest
