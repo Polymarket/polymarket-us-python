@@ -55,14 +55,16 @@ client = PolymarketUS(
 )
 
 # Create an order
-order = client.orders.create({
-    "marketSlug": "btc-100k-2025",
-    "intent": "ORDER_INTENT_BUY_LONG",
-    "type": "ORDER_TYPE_LIMIT",
-    "price": {"value": "0.55", "currency": "USD"},
-    "quantity": 100,
-    "tif": "TIME_IN_FORCE_GOOD_TILL_CANCEL",
-})
+order = client.orders.create(
+    {
+        "marketSlug": "btc-100k-2025",
+        "intent": "ORDER_INTENT_BUY_LONG",
+        "type": "ORDER_TYPE_LIMIT",
+        "price": {"value": "0.55", "currency": "USD"},
+        "quantity": 100,
+        "tif": "TIME_IN_FORCE_GOOD_TILL_CANCEL",
+    }
+)
 
 # Get open orders
 open_orders = client.orders.list()
@@ -92,6 +94,7 @@ import asyncio
 import os
 from polymarket_us import AsyncPolymarketUS
 
+
 async def main():
     async with AsyncPolymarketUS(
         key_id=os.environ["POLYMARKET_KEY_ID"],
@@ -105,6 +108,7 @@ async def main():
         print(f"Found {len(events['events'])} events")
         print(f"Found {len(markets['markets'])} markets")
 
+
 asyncio.run(main())
 ```
 
@@ -116,7 +120,7 @@ The SDK automatically signs requests with your credentials:
 
 ```python
 client = PolymarketUS(
-    key_id="your-api-key-id",      # UUID
+    key_id="your-api-key-id",  # UUID
     secret_key="your-secret-key",  # Base64-encoded Ed25519 private key
 )
 ```
@@ -156,8 +160,8 @@ except APIConnectionError as e:
 client = PolymarketUS(
     key_id="your-key-id",
     secret_key="your-secret-key",
-    timeout=30.0,      # Request timeout in seconds (default: 30.0)
-    max_retries=2,     # Automatic retries for idempotent requests (default: 2)
+    timeout=30.0,  # Request timeout in seconds (default: 30.0)
+    max_retries=2,  # Automatic retries for idempotent requests (default: 2)
 )
 ```
 
@@ -186,10 +190,15 @@ except APIError as e:
 > **Note**: WebSocket connections are async-only due to their event-driven nature.
 > Use `asyncio.run()` when working with the sync client, or use `AsyncPolymarketUS` directly.
 
+`SUBSCRIPTION_TYPE_ORDER` streams updates only. Request a one-shot order snapshot
+separately with `SUBSCRIPTION_TYPE_ORDER_SNAPSHOT` and a distinct request ID. A
+successful snapshot ends with an `eof: true` frame; failures use the `error` handler.
+
 ```python
 import asyncio
 import os
 from polymarket_us import PolymarketUS
+
 
 async def main():
     client = PolymarketUS(
@@ -201,7 +210,8 @@ async def main():
     private_ws = client.ws.private()
 
     def on_order_snapshot(data):
-        print(f"Open orders: {data['orderSubscriptionSnapshot']['orders']}")
+        snapshot = data["orderSubscriptionSnapshot"]
+        print(f"Order snapshot: {snapshot['orders']}, eof={snapshot['eof']}")
 
     def on_order_update(data):
         print(f"Order execution: {data['orderSubscriptionUpdate']['execution']}")
@@ -212,6 +222,7 @@ async def main():
 
     await private_ws.connect()
     await private_ws.subscribe("order-sub-1", "SUBSCRIPTION_TYPE_ORDER")
+    await private_ws.subscribe("order-snapshot-1", "SUBSCRIPTION_TYPE_ORDER_SNAPSHOT")
     await private_ws.subscribe("pos-sub-1", "SUBSCRIPTION_TYPE_POSITION")
     await private_ws.subscribe("balance-sub-1", "SUBSCRIPTION_TYPE_ACCOUNT_BALANCE")
 
@@ -230,6 +241,7 @@ async def main():
 
     await private_ws.close()
     await markets_ws.close()
+
 
 asyncio.run(main())
 ```

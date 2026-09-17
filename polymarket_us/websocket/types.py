@@ -6,6 +6,7 @@ from polymarket_us.types import Amount, Execution, Order, UserPosition
 
 PrivateSubscriptionType = Literal[
     "SUBSCRIPTION_TYPE_ORDER",
+    "SUBSCRIPTION_TYPE_ORDER_SNAPSHOT",
     "SUBSCRIPTION_TYPE_POSITION",
     "SUBSCRIPTION_TYPE_ACCOUNT_BALANCE",
 ]
@@ -51,7 +52,7 @@ class OrderSnapshot(TypedDict):
     """Order snapshot message."""
 
     requestId: str
-    subscriptionType: Literal["SUBSCRIPTION_TYPE_ORDER"]
+    subscriptionType: Literal["SUBSCRIPTION_TYPE_ORDER_SNAPSHOT"]
     orderSubscriptionSnapshot: _OrderSubscriptionSnapshot
 
 
