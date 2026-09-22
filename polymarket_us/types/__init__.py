@@ -16,6 +16,8 @@ from polymarket_us.types.events import (
     Tag,
 )
 from polymarket_us.types.markets import (
+    GetMarketBBOResponse,
+    GetMarketBookResponse,
     GetMarketResponse,
     GetMarketsResponse,
     MarketBBO,
@@ -113,6 +115,8 @@ __all__ = [
     "MarketsListParams",
     "GetMarketsResponse",
     "GetMarketResponse",
+    "GetMarketBookResponse",
+    "GetMarketBBOResponse",
     # Orders
     "OrderType",
     "OrderSide",

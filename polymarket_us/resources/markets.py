@@ -2,10 +2,10 @@
 
 from polymarket_us.resource import APIResource, AsyncAPIResource
 from polymarket_us.types import (
+    GetMarketBBOResponse,
+    GetMarketBookResponse,
     GetMarketResponse,
     GetMarketsResponse,
-    MarketBBO,
-    MarketBook,
     MarketSettlement,
     MarketsListParams,
 )
@@ -26,11 +26,11 @@ class Markets(APIResource):
         """Get a market by slug."""
         return self._client.get(f"/v1/market/slug/{slug}")
 
-    def book(self, slug: str) -> MarketBook:
+    def book(self, slug: str) -> GetMarketBookResponse:
         """Get order book for a market."""
         return self._client.get(f"/v1/markets/{slug}/book")
 
-    def bbo(self, slug: str) -> MarketBBO:
+    def bbo(self, slug: str) -> GetMarketBBOResponse:
         """Get best bid/offer for a market."""
         return self._client.get(f"/v1/markets/{slug}/bbo")
 
@@ -54,11 +54,11 @@ class AsyncMarkets(AsyncAPIResource):
         """Get a market by slug."""
         return await self._client.get(f"/v1/market/slug/{slug}")
 
-    async def book(self, slug: str) -> MarketBook:
+    async def book(self, slug: str) -> GetMarketBookResponse:
         """Get order book for a market."""
         return await self._client.get(f"/v1/markets/{slug}/book")
 
-    async def bbo(self, slug: str) -> MarketBBO:
+    async def bbo(self, slug: str) -> GetMarketBBOResponse:
         """Get best bid/offer for a market."""
         return await self._client.get(f"/v1/markets/{slug}/bbo")
 
