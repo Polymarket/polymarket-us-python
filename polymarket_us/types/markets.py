@@ -55,6 +55,7 @@ class MarketStats(TypedDict, total=False):
 
 
 MarketState = Literal[
+    "MARKET_STATE_CLOSED",
     "MARKET_STATE_OPEN",
     "MARKET_STATE_PREOPEN",
     "MARKET_STATE_SUSPENDED",
@@ -72,19 +73,19 @@ class MarketBook(TypedDict, total=False):
     bids: list[OrderBookLevel]
     offers: list[OrderBookLevel]
     state: MarketState
-    stats: MarketStats
-    transactTime: str
+    stats: MarketStats | None
+    transactTime: str | None
 
 
 class MarketBBO(TypedDict, total=False):
     """Best bid/offer for a market."""
 
     marketSlug: str
-    bestBid: Amount
-    bestAsk: Amount
+    bestBid: Amount | None
+    bestAsk: Amount | None
     bidDepth: int
     askDepth: int
-    lastTradePx: Amount
+    lastTradePx: Amount | None
     sharesTraded: str
     openInterest: str
 
@@ -92,9 +93,8 @@ class MarketBBO(TypedDict, total=False):
 class MarketSettlement(TypedDict):
     """Market settlement information."""
 
-    marketSlug: str
-    settlementPrice: Amount
-    settledAt: str
+    slug: str
+    settlement: float
 
 
 class MarketsListParams(PaginationParams, total=False):
@@ -126,3 +126,15 @@ class GetMarketResponse(TypedDict):
     """Response for getting a single market."""
 
     market: MarketDetail
+
+
+class GetMarketBookResponse(TypedDict):
+    """Response for getting a market's order book."""
+
+    marketData: MarketBook
+
+
+class GetMarketBBOResponse(TypedDict):
+    """Response for getting a market's best bid/offer."""
+
+    marketData: MarketBBO

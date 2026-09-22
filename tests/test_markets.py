@@ -4,8 +4,10 @@ from unittest.mock import MagicMock, patch
 
 import httpx
 import pytest
+from pytest_httpx import HTTPXMock
 
-from polymarket_us import PolymarketUS
+from polymarket_us import AsyncPolymarketUS, PolymarketUS
+from polymarket_us.types import GetMarketBBOResponse, GetMarketBookResponse, MarketSettlement
 
 
 class TestMarketsList:
@@ -93,108 +95,125 @@ class TestMarketsRetrieveBySlug:
         assert "/v1/market/slug/btc-100k" in url
 
 
-class TestMarketsBook:
-    """Tests for markets.book()."""
-
-    @pytest.fixture
-    def client(self) -> PolymarketUS:
-        return PolymarketUS()
-
-    @patch.object(httpx.Client, "request")
-    def test_get_order_book(self, mock_request: MagicMock, client: PolymarketUS) -> None:
-        """Should get order book."""
-        mock_response = MagicMock()
-        mock_response.is_success = True
-        mock_response.text = '{"marketSlug": "btc-100k", "bids": [], "offers": []}'
-        mock_response.json.return_value = {
+@pytest.fixture(params=[False, True], ids=["populated", "empty"])
+def book_response(request: pytest.FixtureRequest) -> GetMarketBookResponse:
+    if request.param:
+        return {
+            "marketData": {
+                "marketSlug": "btc-100k",
+                "bids": [],
+                "offers": [],
+                "state": "MARKET_STATE_CLOSED",
+                "stats": None,
+                "transactTime": None,
+            }
+        }
+    return {
+        "marketData": {
             "marketSlug": "btc-100k",
             "bids": [{"px": {"value": "0.55", "currency": "USD"}, "qty": "100"}],
             "offers": [{"px": {"value": "0.56", "currency": "USD"}, "qty": "80"}],
             "state": "MARKET_STATE_OPEN",
+            "stats": {"lastTradePx": {"value": "0.55", "currency": "USD"}},
+            "transactTime": "2026-09-21T12:00:00Z",
         }
-        mock_request.return_value = mock_response
-
-        book = client.markets.book("btc-100k")
-
-        assert book["marketSlug"] == "btc-100k"
-        assert "bids" in book
-        assert "offers" in book
-
-    @patch.object(httpx.Client, "request")
-    def test_uses_correct_path(self, mock_request: MagicMock, client: PolymarketUS) -> None:
-        """Should use correct path."""
-        mock_response = MagicMock()
-        mock_response.is_success = True
-        mock_response.text = '{"bids": [], "offers": []}'
-        mock_response.json.return_value = {"bids": [], "offers": []}
-        mock_request.return_value = mock_response
-
-        client.markets.book("test-market")
-
-        call_args = mock_request.call_args
-        url = call_args.args[1] if len(call_args.args) > 1 else call_args.kwargs.get("url")
-        assert "/v1/markets/test-market/book" in url
+    }
 
 
-class TestMarketsBBO:
-    """Tests for markets.bbo()."""
-
-    @pytest.fixture
-    def client(self) -> PolymarketUS:
-        return PolymarketUS()
-
-    @patch.object(httpx.Client, "request")
-    def test_get_best_bid_offer(self, mock_request: MagicMock, client: PolymarketUS) -> None:
-        """Should get best bid/offer."""
-        mock_response = MagicMock()
-        mock_response.is_success = True
-        mock_response.text = '{"marketSlug": "btc-100k"}'
-        mock_response.json.return_value = {
+@pytest.fixture(params=[False, True], ids=["populated", "empty"])
+def bbo_response(request: pytest.FixtureRequest) -> GetMarketBBOResponse:
+    if request.param:
+        return {
+            "marketData": {
+                "marketSlug": "btc-100k",
+                "bestBid": None,
+                "bestAsk": None,
+                "lastTradePx": None,
+                "bidDepth": 0,
+                "askDepth": 0,
+                "sharesTraded": "",
+                "openInterest": "",
+            }
+        }
+    return {
+        "marketData": {
             "marketSlug": "btc-100k",
             "bestBid": {"value": "0.55", "currency": "USD"},
             "bestAsk": {"value": "0.56", "currency": "USD"},
+            "lastTradePx": {"value": "0.55", "currency": "USD"},
+            "bidDepth": 1,
+            "askDepth": 1,
+            "sharesTraded": "100",
+            "openInterest": "80",
         }
-        mock_request.return_value = mock_response
-
-        bbo = client.markets.bbo("btc-100k")
-
-        assert "bestBid" in bbo
-        assert "bestAsk" in bbo
-
-    @patch.object(httpx.Client, "request")
-    def test_uses_correct_path(self, mock_request: MagicMock, client: PolymarketUS) -> None:
-        """Should use correct path."""
-        mock_response = MagicMock()
-        mock_response.is_success = True
-        mock_response.text = "{}"
-        mock_response.json.return_value = {}
-        mock_request.return_value = mock_response
-
-        client.markets.bbo("test-market")
-
-        call_args = mock_request.call_args
-        url = call_args.args[1] if len(call_args.args) > 1 else call_args.kwargs.get("url")
-        assert "/v1/markets/test-market/bbo" in url
+    }
 
 
-class TestMarketsSettlement:
-    """Tests for markets.settlement()."""
+def test_book_returns_wire_response(
+    httpx_mock: HTTPXMock, book_response: GetMarketBookResponse
+) -> None:
+    httpx_mock.add_response(
+        method="GET",
+        url="https://gateway.polymarket.us/v1/markets/btc-100k/book",
+        json=book_response,
+    )
+    with PolymarketUS() as client:
+        assert client.markets.book("btc-100k") == book_response
 
-    @pytest.fixture
-    def client(self) -> PolymarketUS:
-        return PolymarketUS()
 
-    @patch.object(httpx.Client, "request")
-    def test_uses_correct_path(self, mock_request: MagicMock, client: PolymarketUS) -> None:
-        """Should use correct path."""
-        mock_response = MagicMock()
-        mock_response.is_success = True
-        mock_response.text = "{}"
-        mock_response.json.return_value = {}
-        mock_request.return_value = mock_response
+async def test_async_book_returns_wire_response(
+    httpx_mock: HTTPXMock, book_response: GetMarketBookResponse
+) -> None:
+    httpx_mock.add_response(
+        method="GET",
+        url="https://gateway.polymarket.us/v1/markets/btc-100k/book",
+        json=book_response,
+    )
+    async with AsyncPolymarketUS() as client:
+        assert await client.markets.book("btc-100k") == book_response
 
-        client.markets.settlement("settled-market")
 
-        call_args = mock_request.call_args
-        url = call_args.args[1] if len(call_args.args) > 1 else call_args.kwargs.get("url")
-        assert "/v1/markets/settled-market/settlement" in url
+def test_bbo_returns_wire_response(
+    httpx_mock: HTTPXMock, bbo_response: GetMarketBBOResponse
+) -> None:
+    httpx_mock.add_response(
+        method="GET", url="https://gateway.polymarket.us/v1/markets/btc-100k/bbo", json=bbo_response
+    )
+    with PolymarketUS() as client:
+        assert client.markets.bbo("btc-100k") == bbo_response
+
+
+async def test_async_bbo_returns_wire_response(
+    httpx_mock: HTTPXMock, bbo_response: GetMarketBBOResponse
+) -> None:
+    httpx_mock.add_response(
+        method="GET", url="https://gateway.polymarket.us/v1/markets/btc-100k/bbo", json=bbo_response
+    )
+    async with AsyncPolymarketUS() as client:
+        assert await client.markets.bbo("btc-100k") == bbo_response
+
+
+@pytest.mark.parametrize("settlement", [0, 0.5, 1])
+def test_settlement_returns_numeric_price(httpx_mock: HTTPXMock, settlement: float) -> None:
+    response: MarketSettlement = {"slug": "btc-100k", "settlement": settlement}
+    httpx_mock.add_response(
+        method="GET",
+        url="https://gateway.polymarket.us/v1/markets/btc-100k/settlement",
+        json=response,
+    )
+    with PolymarketUS() as client:
+        assert client.markets.settlement("btc-100k") == response
+
+
+@pytest.mark.parametrize("settlement", [0, 0.5, 1])
+async def test_async_settlement_returns_numeric_price(
+    httpx_mock: HTTPXMock, settlement: float
+) -> None:
+    response: MarketSettlement = {"slug": "btc-100k", "settlement": settlement}
+    httpx_mock.add_response(
+        method="GET",
+        url="https://gateway.polymarket.us/v1/markets/btc-100k/settlement",
+        json=response,
+    )
+    async with AsyncPolymarketUS() as client:
+        assert await client.markets.settlement("btc-100k") == response
