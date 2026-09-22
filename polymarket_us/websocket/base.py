@@ -9,7 +9,7 @@ from collections.abc import Callable
 from typing import Any
 
 import websockets
-from websockets.asyncio.client import ClientConnection
+from websockets.asyncio.client import ClientConnection, connect
 
 from polymarket_us.auth import create_auth_headers
 from polymarket_us.errors import PolymarketUSError
@@ -50,7 +50,7 @@ class BaseWebSocket:
         url = f"{self.base_url}{self.path}"
         headers = create_auth_headers(self.key_id, self.secret_key, "GET", self.path)
 
-        self._ws = await websockets.connect(url, additional_headers=headers)
+        self._ws = await connect(url, additional_headers=headers)
         self._emit("open")
 
         # Start message handler

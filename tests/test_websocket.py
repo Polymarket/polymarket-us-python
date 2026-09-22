@@ -1,11 +1,57 @@
 """Tests for WebSocket functionality."""
 
+import asyncio
+import base64
+from typing import Literal
+
 import pytest
+from nacl.signing import SigningKey
+from websockets.asyncio.server import ServerConnection, serve
+from websockets.http11 import Request
 
 from polymarket_us import AuthenticationError, PolymarketUS
 from polymarket_us.websocket import MarketsWebSocket, PrivateWebSocket
 
 TEST_SECRET_KEY = "nWGxne/9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A="
+
+
+@pytest.mark.parametrize("stream", ["markets", "private"])
+async def test_connect_sends_auth_headers(stream: Literal["markets", "private"]) -> None:
+    requests: asyncio.Queue[Request] = asyncio.Queue()
+
+    async def handler(connection: ServerConnection) -> None:
+        assert connection.request is not None
+        await requests.put(connection.request)
+        await connection.send('{"heartbeat": {}}')
+        await connection.wait_closed()
+
+    async with serve(handler, "127.0.0.1", 0, close_timeout=1) as server:
+        port = server.sockets[0].getsockname()[1]
+        with PolymarketUS(
+            key_id="test-key",
+            secret_key=TEST_SECRET_KEY,
+            api_base_url=f"http://127.0.0.1:{port}",
+        ) as client:
+            ws = client.ws.markets() if stream == "markets" else client.ws.private()
+            heartbeat = asyncio.Event()
+            ws.on("heartbeat", heartbeat.set)
+            try:
+                await asyncio.wait_for(ws.connect(), timeout=5)
+                request = await asyncio.wait_for(requests.get(), timeout=5)
+                assert request.path == f"/v1/ws/{stream}"
+                assert request.headers["X-PM-Access-Key"] == "test-key"
+                timestamp = request.headers["X-PM-Timestamp"]
+                assert timestamp.isdigit()
+                signature = base64.b64decode(request.headers["X-PM-Signature"])
+                signing_key = SigningKey(base64.b64decode(TEST_SECRET_KEY))
+                signing_key.verify_key.verify(
+                    (timestamp + "GET" + request.path).encode(), signature
+                )
+                await asyncio.wait_for(heartbeat.wait(), timeout=5)
+                assert ws.is_connected
+            finally:
+                await asyncio.wait_for(ws.close(), timeout=5)
+            assert not ws.is_connected
 
 
 class TestWebSocketFactory:
