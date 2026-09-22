@@ -48,11 +48,13 @@ jobs:
             "https://pypi.org/pypi/${{ steps.package.outputs.name }}/${{ steps.package.outputs.version }}/json")
           case "$status" in
             200)
-              publish=$(python .github/scripts/check_pypi_artifacts.py dist "$response")
+              publish=$(python .github/scripts/check_pypi_artifacts.py \
+                dist publish-dist --release-json "$response")
               echo "publish=$publish" >> "$GITHUB_OUTPUT"
               ;;
             404)
-              echo "publish=true" >> "$GITHUB_OUTPUT"
+              publish=$(python .github/scripts/check_pypi_artifacts.py dist publish-dist)
+              echo "publish=$publish" >> "$GITHUB_OUTPUT"
               ;;
             *)
               echo "Unexpected PyPI response: HTTP $status" >&2
@@ -65,4 +67,4 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
-          skip-existing: true
+          packages-dir: publish-dist
