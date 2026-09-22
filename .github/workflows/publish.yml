@@ -37,15 +37,19 @@ jobs:
           echo "name=$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["name"])')" >> "$GITHUB_OUTPUT"
           echo "version=$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')" >> "$GITHUB_OUTPUT"
 
-      - name: Check PyPI
+      - name: Build package
+        run: uv build
+
+      - name: Check PyPI artifacts
         id: registry
         run: |
-          status=$(curl --silent --show-error --output /dev/null --write-out "%{http_code}" \
+          response=$(mktemp)
+          status=$(curl --silent --show-error --output "$response" --write-out "%{http_code}" \
             "https://pypi.org/pypi/${{ steps.package.outputs.name }}/${{ steps.package.outputs.version }}/json")
           case "$status" in
             200)
-              echo "publish=false" >> "$GITHUB_OUTPUT"
-              echo "${{ steps.package.outputs.name }}==${{ steps.package.outputs.version }} is already published"
+              publish=$(python .github/scripts/check_pypi_artifacts.py dist "$response")
+              echo "publish=$publish" >> "$GITHUB_OUTPUT"
               ;;
             404)
               echo "publish=true" >> "$GITHUB_OUTPUT"
@@ -56,12 +60,9 @@ jobs:
               ;;
           esac
 
-      - name: Build package
-        if: steps.registry.outputs.publish == 'true'
-        run: uv build
-
       - name: Publish to PyPI
         if: steps.registry.outputs.publish == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
+          skip-existing: true
