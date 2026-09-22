@@ -9,15 +9,13 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      id-token: write
+      contents: read
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GH_PAT }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -33,65 +31,40 @@ jobs:
       - name: Run tests
         run: uv run pytest
 
-      - name: Configure Git
+      - name: Read package metadata
+        id: package
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Determine version bump type
-        id: version
-        run: |
-          COMMIT_MSG=$(git log -1 --pretty=%B)
-          if echo "$COMMIT_MSG" | grep -iq "^feat!:\|BREAKING CHANGE"; then
-            echo "bump=major" >> $GITHUB_OUTPUT
-          elif echo "$COMMIT_MSG" | grep -iq "^feat:"; then
-            echo "bump=minor" >> $GITHUB_OUTPUT
-          else
-            echo "bump=patch" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Bump version
-        run: |
-          # Get current version from pyproject.toml
-          CURRENT_VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
-          if [ -z "$CURRENT_VERSION" ]; then
-            echo "Error: Could not extract current version from pyproject.toml"
-            exit 1
-          fi
-          
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
-          
-          BUMP_TYPE="${{ steps.version.outputs.bump }}"
-          
-          if [ "$BUMP_TYPE" = "major" ]; then
-            MAJOR=$((MAJOR + 1))
-            MINOR=0
-            PATCH=0
-          elif [ "$BUMP_TYPE" = "minor" ]; then
-            MINOR=$((MINOR + 1))
-            PATCH=0
-          else
-            PATCH=$((PATCH + 1))
-          fi
-          
-          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
-          
-          # Update version in pyproject.toml - use a pattern that matches any version
-          sed -i 's/^version = ".*"/version = "'"$NEW_VERSION"'"/' pyproject.toml
-          
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          echo "Bumped version from $CURRENT_VERSION to $NEW_VERSION"
-
-      - name: Commit and push version bump
-        run: |
-          git add pyproject.toml
-          git commit -m "chore: bump version to ${{ env.NEW_VERSION }} [skip ci]"
-          git push
+          echo "name=$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["name"])')" >> "$GITHUB_OUTPUT"
+          echo "version=$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')" >> "$GITHUB_OUTPUT"
 
       - name: Build package
         run: uv build
 
+      - name: Check PyPI artifacts
+        id: registry
+        run: |
+          response=$(mktemp)
+          status=$(curl --silent --show-error --output "$response" --write-out "%{http_code}" \
+            "https://pypi.org/pypi/${{ steps.package.outputs.name }}/${{ steps.package.outputs.version }}/json")
+          case "$status" in
+            200)
+              publish=$(python .github/scripts/check_pypi_artifacts.py \
+                dist publish-dist --release-json "$response")
+              echo "publish=$publish" >> "$GITHUB_OUTPUT"
+              ;;
+            404)
+              publish=$(python .github/scripts/check_pypi_artifacts.py dist publish-dist)
+              echo "publish=$publish" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "Unexpected PyPI response: HTTP $status" >&2
+              exit 1
+              ;;
+          esac
+
       - name: Publish to PyPI
+        if: steps.registry.outputs.publish == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
+          packages-dir: publish-dist
