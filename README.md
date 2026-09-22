@@ -267,6 +267,25 @@ asyncio.run(main())
 | `markets.bbo(slug)` | Get best bid/offer |
 | `markets.settlement(slug)` | Get settlement price |
 
+#### Market response type migration
+
+The response types now match the existing JSON returned by both sync and async
+clients; runtime responses are unchanged. Typed callers should read book and BBO
+data through `marketData`. Settlement uses `slug` and a numeric `settlement`,
+replacing the previous `marketSlug`, `settlementPrice`, and `settledAt` declarations.
+
+```python
+book = client.markets.book("btc-100k")["marketData"]
+bbo = client.markets.bbo("btc-100k")["marketData"]
+settlement = client.markets.settlement("btc-100k")
+slug = settlement["slug"]
+settlement_price = settlement["settlement"]
+```
+
+With `AsyncPolymarketUS`, await each method call before reading these keys.
+Handle `None` for book `stats` and `transactTime`, and BBO `bestBid`, `bestAsk`, and
+`lastTradePx`. Books also support `MARKET_STATE_CLOSED`.
+
 ### Orders (Authenticated)
 
 | Method | Description |
