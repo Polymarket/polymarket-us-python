@@ -69,6 +69,8 @@ class BaseWebSocket:
             self._emit("close")
         except Exception as e:
             self._emit("error", PolymarketUSError(str(e)))
+        else:
+            self._emit("close")
 
     def _handle_message(self, data: str) -> None:
         """Handle incoming message (override in subclasses)."""

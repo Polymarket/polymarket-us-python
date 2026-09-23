@@ -2,6 +2,7 @@
 
 import asyncio
 import base64
+from collections.abc import AsyncIterator
 from typing import Literal
 
 import pytest
@@ -10,7 +11,9 @@ from websockets.asyncio.server import ServerConnection, serve
 from websockets.http11 import Request
 
 from polymarket_us import AuthenticationError, PolymarketUS
+from polymarket_us.errors import PolymarketUSError
 from polymarket_us.websocket import MarketsWebSocket, PrivateWebSocket
+from polymarket_us.websocket.base import BaseWebSocket
 
 TEST_SECRET_KEY = "nWGxne/9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A="
 
@@ -52,6 +55,112 @@ async def test_connect_sends_auth_headers(stream: Literal["markets", "private"])
             finally:
                 await asyncio.wait_for(ws.close(), timeout=5)
             assert not ws.is_connected
+
+
+@pytest.mark.parametrize("stream", ["markets", "private"])
+class TestWebSocketLifecycle:
+    @pytest.fixture
+    async def connection(
+        self, stream: Literal["markets", "private"]
+    ) -> AsyncIterator[tuple[BaseWebSocket, ServerConnection]]:
+        connections: asyncio.Queue[ServerConnection] = asyncio.Queue()
+
+        async def handler(peer: ServerConnection) -> None:
+            await connections.put(peer)
+            await peer.wait_closed()
+
+        async with serve(handler, "127.0.0.1", 0, close_timeout=1) as server:
+            port = server.sockets[0].getsockname()[1]
+            with PolymarketUS(
+                key_id="test-key",
+                secret_key=TEST_SECRET_KEY,
+                api_base_url=f"http://127.0.0.1:{port}",
+            ) as client:
+                ws = client.ws.markets() if stream == "markets" else client.ws.private()
+                try:
+                    await asyncio.wait_for(ws.connect(), timeout=5)
+                    peer = await asyncio.wait_for(connections.get(), timeout=5)
+                    yield ws, peer
+                finally:
+                    await asyncio.wait_for(ws.close(), timeout=5)
+
+    @pytest.mark.parametrize("close_code", [1000, 1001, 1011])
+    async def test_remote_close_emits_once(
+        self, connection: tuple[BaseWebSocket, ServerConnection], close_code: int
+    ) -> None:
+        ws, peer = connection
+        events: list[str] = []
+        errors: list[PolymarketUSError] = []
+        heartbeat = asyncio.Event()
+        ws.on("heartbeat", heartbeat.set)
+        ws.on("close", lambda: events.append("close"))
+        ws.once("close", lambda: events.append("once"))
+        ws.on("error", errors.append)
+
+        await asyncio.wait_for(peer.send('{"heartbeat": {}}'), timeout=5)
+        await asyncio.wait_for(heartbeat.wait(), timeout=5)
+        await asyncio.wait_for(peer.close(close_code), timeout=5)
+        assert ws._message_task is not None
+        await asyncio.wait_for(ws._message_task, timeout=5)
+
+        assert not ws.is_connected
+        assert events == ["close", "once"]
+        assert errors == []
+        await asyncio.wait_for(ws.close(), timeout=5)
+        assert events == ["close", "once"]
+
+    async def test_local_close_does_not_emit_close(
+        self, connection: tuple[BaseWebSocket, ServerConnection]
+    ) -> None:
+        ws, peer = connection
+        events: list[str] = []
+        ws.on("close", lambda: events.append("close"))
+
+        await asyncio.wait_for(ws.close(), timeout=5)
+        await asyncio.wait_for(peer.wait_closed(), timeout=5)
+
+        assert ws._message_task is not None
+        assert ws._message_task.cancelled()
+        assert not ws.is_connected
+        assert events == []
+
+    async def test_message_task_cancellation_does_not_emit_close(
+        self, connection: tuple[BaseWebSocket, ServerConnection]
+    ) -> None:
+        ws, _ = connection
+        events: list[str] = []
+        ws.on("close", lambda: events.append("close"))
+        assert ws._message_task is not None
+
+        ws._message_task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await asyncio.wait_for(ws._message_task, timeout=5)
+
+        assert ws.is_connected
+        assert events == []
+
+    async def test_message_listener_error_does_not_emit_close(
+        self, connection: tuple[BaseWebSocket, ServerConnection]
+    ) -> None:
+        ws, peer = connection
+        events: list[str] = []
+        errors: list[PolymarketUSError] = []
+
+        def on_heartbeat() -> None:
+            raise ValueError("listener failed")
+
+        ws.on("heartbeat", on_heartbeat)
+        ws.on("close", lambda: events.append("close"))
+        ws.on("error", errors.append)
+        await asyncio.wait_for(peer.send('{"heartbeat": {}}'), timeout=5)
+        assert ws._message_task is not None
+        await asyncio.wait_for(ws._message_task, timeout=5)
+
+        assert ws.is_connected
+        assert events == []
+        assert len(errors) == 1
+        assert isinstance(errors[0], PolymarketUSError)
+        assert str(errors[0]) == "listener failed"
 
 
 class TestWebSocketFactory:
