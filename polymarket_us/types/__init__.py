@@ -5,6 +5,7 @@ from polymarket_us.types.account import (
     PendingWithdrawal,
     UserBalance,
 )
+from polymarket_us.types.combos import ComboLegDetail, ComboLegState, ComboSettlement
 from polymarket_us.types.common import Amount, PaginationParams
 from polymarket_us.types.events import (
     Event,
@@ -28,6 +29,7 @@ from polymarket_us.types.markets import (
     MarketState,
     MarketStats,
     OrderBookLevel,
+    Subject,
     Team,
 )
 from polymarket_us.types.orders import (
@@ -51,6 +53,7 @@ from polymarket_us.types.orders import (
     OrderSide,
     OrderState,
     OrderType,
+    OutcomeSide,
     PreviewOrderParams,
     PreviewOrderResponse,
     SlippageTolerance,
@@ -95,6 +98,10 @@ __all__ = [
     "UserBalance",
     "PendingWithdrawal",
     "GetAccountBalancesResponse",
+    # Combo legs
+    "ComboLegDetail",
+    "ComboLegState",
+    "ComboSettlement",
     # Events
     "Event",
     "Market",
@@ -106,6 +113,7 @@ __all__ = [
     # Markets
     "MarketDetail",
     "Team",
+    "Subject",
     "OrderBookLevel",
     "MarketBook",
     "MarketStats",
@@ -120,6 +128,7 @@ __all__ = [
     # Orders
     "OrderType",
     "OrderSide",
+    "OutcomeSide",
     "OrderIntent",
     "TimeInForce",
     "OrderState",

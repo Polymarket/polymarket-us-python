@@ -6,6 +6,7 @@ from polymarket_us.types.common import Amount
 
 OrderType = Literal["ORDER_TYPE_LIMIT", "ORDER_TYPE_MARKET"]
 OrderSide = Literal["ORDER_SIDE_BUY", "ORDER_SIDE_SELL"]
+OutcomeSide = Literal["OUTCOME_SIDE_UNSPECIFIED", "OUTCOME_SIDE_YES", "OUTCOME_SIDE_NO"]
 OrderIntent = Literal[
     "ORDER_INTENT_BUY_LONG",
     "ORDER_INTENT_SELL_LONG",

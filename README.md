@@ -367,7 +367,11 @@ the current gateway payloads. Replace `positionSubscriptionUpdate.position` with
 fields with `accountBalancesSnapshot.balances` and
 `accountBalancesUpdate.balanceChange.beforeBalance` / `afterBalance`.
 Before/after values and timestamps can be `None`; balance entries use
-`currentBalance` and `buyingPower`.
+`currentBalance` and `buyingPower`. Use `netPositionDecimal` and the other decimal
+quantity fields for exact fractional positions; the older quantity fields are
+rounded. Position types include nullable cost fields and combo leg details.
+Balance reservation and display fields are optional: an absent value is unknown,
+while `0` is a known zero.
 
 ```python
 from polymarket_us.websocket import AccountBalanceSnapshot, AccountBalanceUpdate, PositionUpdate

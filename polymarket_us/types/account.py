@@ -31,6 +31,13 @@ class UserBalance(TypedDict, total=False):
     pendingWithdrawals: list[PendingWithdrawal]
     marginRequirement: float
     balanceReservation: float
+    depositReservation: float
+    bonusReservation: float
+    displayedBonus: float
+    displayedAvailableSoon: float
+    displayedCash: float
+    availableToWithdraw: float
+    bonusHold: float
 
 
 class GetAccountBalancesResponse(TypedDict):

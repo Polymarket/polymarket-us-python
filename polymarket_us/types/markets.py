@@ -21,6 +21,22 @@ class Team(TypedDict, total=False):
     colorPrimary: str
 
 
+class Subject(TypedDict, total=False):
+    """Subject information for a combo leg."""
+
+    id: int
+    name: str
+    displayName: str
+    description: str
+    subjectType: str
+    image: str
+    color: str
+    darkColor: str
+    createdAt: str
+    updatedAt: str
+    slug: str
+
+
 class MarketDetail(TypedDict, total=False):
     """Detailed market information."""
 

@@ -56,8 +56,40 @@
         "qtyBoughtDecimal": "",
         "qtySoldDecimal": "",
         "bodPositionDecimal": "",
-        "comboLegDetails": [],
-        "positionId": ""
+        "comboLegDetails": [
+          {
+            "slug": "synthetic-leg",
+            "icon": "",
+            "title": "Synthetic leg",
+            "outcome": "Yes",
+            "eventSlug": "synthetic-event",
+            "teamId": 1,
+            "team": {
+              "id": 1,
+              "name": "Synthetic team"
+            },
+            "subject": {
+              "id": 1,
+              "name": "Synthetic player",
+              "subjectType": "player"
+            },
+            "eventId": "synthetic-event-id",
+            "outcomeSide": "OUTCOME_SIDE_YES",
+            "eventGroupTitle": "",
+            "eventStartTime": null,
+            "live": false,
+            "indicativePrice": null,
+            "settlement": {
+              "settlementPrice": {
+                "value": "1",
+                "currency": "USD"
+              },
+              "settlementSetTime": null
+            },
+            "state": "COMBO_LEG_STATE_WON"
+          }
+        ],
+        "positionId": "synthetic-user:LONG:synthetic-combo"
       },
       "updateTime": null,
       "entryType": "LEDGER_ENTRY_TYPE_UNDEFINED",
@@ -99,7 +131,15 @@
           "openOrders": 0,
           "unsettledFunds": 0,
           "pendingWithdrawals": [],
-          "marginRequirement": 0
+          "marginRequirement": 0,
+          "balanceReservation": 0,
+          "depositReservation": 0,
+          "bonusReservation": 0,
+          "displayedBonus": 0,
+          "displayedAvailableSoon": 0,
+          "displayedCash": 0,
+          "availableToWithdraw": 0,
+          "bonusHold": 0
         },
         "description": "synthetic change",
         "updateTime": null,
