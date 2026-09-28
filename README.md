@@ -348,6 +348,7 @@ WebSocket methods (`connect()`, `subscribe()`, `close()`) are async and must be 
 - `position_update` - Position changes
 - `account_balance_snapshot` - Initial balance
 - `account_balance_update` - Balance changes
+- `rfq_event` - RFQ and quote lifecycle events
 - `heartbeat` - Connection keepalive
 - `error` - Error events
 - `close` - Connection closed
@@ -357,6 +358,30 @@ WebSocket methods (`connect()`, `subscribe()`, `close()`) are async and must be 
 aliases are retained, and both the named callback and `message` receive the
 original envelope without renaming fields. An empty `error` string no longer
 suppresses a successful data callback.
+
+RFQ subscriptions deliver lifecycle events through `rfq_event` without an initial
+snapshot. Market filters are not supported.
+
+```python
+from polymarket_us.websocket import RFQEvent
+
+
+def on_rfq_event(data: RFQEvent) -> None:
+    event = data["rfqEvent"]
+    created = event.get("rfqCreated")
+    rfq = created["rfq"] if created is not None else None
+    if rfq is not None:
+        print(rfq["id"], rfq.get("qtyDecimal"))
+
+
+private_ws.on("rfq_event", on_rfq_event)
+await private_ws.subscribe_rfq("rfqs-1")
+```
+
+Other event keys are `rfqClosed`, `quoteCreated`, `quoteDeleted`, `quoteAccepted`,
+`quoteConfirmed`, and `quoteExecuted`. Timestamps and nested RFQ/quote objects may
+be null. Portfolio activity trades also expose `qtyDecimal` as an exact decimal
+string; use it instead of the rounded `qty` when fractional quantities matter.
 
 #### Private callback type migration (2.0.0)
 

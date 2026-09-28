@@ -2,13 +2,14 @@
 
 from typing import Literal, TypedDict
 
-from polymarket_us.types import Amount, Execution, Order, UserBalance, UserPosition
+from polymarket_us.types import RFQ, Amount, Execution, Order, Quote, UserBalance, UserPosition
 
 PrivateSubscriptionType = Literal[
     "SUBSCRIPTION_TYPE_ORDER",
     "SUBSCRIPTION_TYPE_ORDER_SNAPSHOT",
     "SUBSCRIPTION_TYPE_POSITION",
     "SUBSCRIPTION_TYPE_ACCOUNT_BALANCE",
+    "SUBSCRIPTION_TYPE_RFQ",
 ]
 
 MarketSubscriptionType = Literal[
@@ -138,6 +139,47 @@ class AccountBalanceUpdate(TypedDict):
     accountBalancesUpdate: _AccountBalancesUpdate
 
 
+class _RFQChange(TypedDict):
+    rfq: RFQ | None
+
+
+class _QuoteChange(TypedDict):
+    quote: Quote | None
+
+
+class _QuoteAccepted(_QuoteChange):
+    confirmationDeadline: str | None
+
+
+class _QuoteConfirmed(_QuoteChange):
+    executionDeadline: str | None
+
+
+class _QuoteExecuted(_QuoteChange):
+    orderId: str
+    clientOrderId: str
+    executedTime: str | None
+
+
+class _RFQEventPayload(TypedDict, total=False):
+    # The gateway emits only the selected event; unknown future events may be empty.
+    rfqCreated: _RFQChange
+    rfqClosed: _RFQChange
+    quoteCreated: _QuoteChange
+    quoteDeleted: _QuoteChange
+    quoteAccepted: _QuoteAccepted
+    quoteConfirmed: _QuoteConfirmed
+    quoteExecuted: _QuoteExecuted
+
+
+class RFQEvent(TypedDict):
+    """Private RFQ event in the gateway wire format."""
+
+    requestId: str
+    subscriptionType: Literal["SUBSCRIPTION_TYPE_RFQ"]
+    rfqEvent: _RFQEventPayload
+
+
 class _OrderBookLevel(TypedDict):
     px: Amount
     qty: str
@@ -225,6 +267,7 @@ PrivateMessage = (
     | PositionUpdate
     | AccountBalanceSnapshot
     | AccountBalanceUpdate
+    | RFQEvent
     | Heartbeat
     | WebSocketErrorMessage
 )

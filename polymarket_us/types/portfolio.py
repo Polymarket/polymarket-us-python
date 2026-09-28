@@ -72,6 +72,7 @@ class Trade(TypedDict, total=False):
     updateTime: str
     price: Amount
     qty: str
+    qtyDecimal: str
     isAggressor: bool
     costBasis: Amount
     realizedPnl: Amount
