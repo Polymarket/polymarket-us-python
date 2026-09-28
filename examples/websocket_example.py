@@ -5,6 +5,7 @@ import os
 from typing import Any
 
 from polymarket_us import PolymarketUS
+from polymarket_us.websocket import AccountBalanceSnapshot, AccountBalanceUpdate, PositionUpdate
 
 
 async def main() -> None:
@@ -31,21 +32,19 @@ async def main() -> None:
         execution = data.get("orderSubscriptionUpdate", {}).get("execution", {})
         print(f"[Private] Order update: {execution.get('type')}")
 
-    def on_position_snapshot(data: dict[str, Any]) -> None:
-        positions = data.get("positionSubscriptionSnapshot", {}).get("positions", {})
-        print(f"[Private] Position snapshot: {len(positions)} positions")
+    def on_position_update(data: PositionUpdate) -> None:
+        change = data["positionSubscription"]
+        print(f"[Private] Position: {change['beforePosition']} -> {change['afterPosition']}")
 
-    def on_position_update(data: dict[str, Any]) -> None:
-        update = data.get("positionSubscriptionUpdate", {})
-        print(f"[Private] Position update: {update.get('marketSlug')}")
+    def on_balance_snapshot(data: AccountBalanceSnapshot) -> None:
+        for balance in data["accountBalancesSnapshot"]["balances"]:
+            print(f"[Private] Balance: {balance.get('currentBalance')} {balance.get('currency')}")
 
-    def on_balance_snapshot(data: dict[str, Any]) -> None:
-        snapshot = data.get("accountBalanceSubscriptionSnapshot", {})
-        print(f"[Private] Balance: ${snapshot.get('balance')}")
-
-    def on_balance_update(data: dict[str, Any]) -> None:
-        update = data.get("accountBalanceSubscriptionUpdate", {})
-        print(f"[Private] Balance update: ${update.get('balance')}")
+    def on_balance_update(data: AccountBalanceUpdate) -> None:
+        change = data["accountBalancesUpdate"]["balanceChange"]
+        after = change["afterBalance"]
+        if after is not None:
+            print(f"[Private] Balance: {after.get('currentBalance')} {after.get('currency')}")
 
     def on_error(error: Exception) -> None:
         print(f"[Error] {error}")
@@ -55,7 +54,6 @@ async def main() -> None:
 
     private_ws.on("order_snapshot", on_order_snapshot)
     private_ws.on("order_update", on_order_update)
-    private_ws.on("position_snapshot", on_position_snapshot)
     private_ws.on("position_update", on_position_update)
     private_ws.on("account_balance_snapshot", on_balance_snapshot)
     private_ws.on("account_balance_update", on_balance_update)

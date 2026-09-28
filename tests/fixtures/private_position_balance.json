@@ -1,0 +1,231 @@
+[
+  {
+    "requestId": "positions-test",
+    "subscriptionType": "SUBSCRIPTION_TYPE_POSITION",
+    "positionSubscription": {
+      "beforePosition": {
+        "netPosition": "1",
+        "qtyBought": "0",
+        "qtySold": "0",
+        "cost": {
+          "value": "0.5",
+          "currency": "USD"
+        },
+        "realized": {
+          "value": "0",
+          "currency": "USD"
+        },
+        "bodPosition": "0",
+        "expired": false,
+        "updateTime": null,
+        "marketMetadata": null,
+        "cashValue": null,
+        "avgPx": null,
+        "fees": null,
+        "baseCost": null,
+        "costPerShare": null,
+        "netPositionDecimal": "1.25",
+        "qtyBoughtDecimal": "",
+        "qtySoldDecimal": "",
+        "bodPositionDecimal": "",
+        "comboLegDetails": [],
+        "positionId": ""
+      },
+      "afterPosition": {
+        "netPosition": "2",
+        "qtyBought": "0",
+        "qtySold": "0",
+        "cost": {
+          "value": "0.5",
+          "currency": "USD"
+        },
+        "realized": {
+          "value": "0",
+          "currency": "USD"
+        },
+        "bodPosition": "0",
+        "expired": false,
+        "updateTime": null,
+        "marketMetadata": {
+          "slug": "synthetic-combo",
+          "icon": "",
+          "title": "Synthetic combo",
+          "outcome": "Yes",
+          "eventSlug": "synthetic-event",
+          "eventId": "synthetic-event-id",
+          "teamId": 1,
+          "team": {
+            "id": 1,
+            "name": "Synthetic team",
+            "providerId": 0,
+            "ordering": "home",
+            "longIcon": "long.png",
+            "shortIcon": "short.png",
+            "displayAbbreviation": "SYN",
+            "ranking": "9007199254740993",
+            "conference": "synthetic-conference",
+            "providerIds": [
+              {
+                "provider": "PROVIDER_GRID",
+                "providerId": "synthetic-provider-id"
+              }
+            ],
+            "longIconDark": "long-dark.png",
+            "shortIconDark": "short-dark.png",
+            "color": {
+              "light": "#000000",
+              "dark": "#ffffff"
+            },
+            "imageDisplayType": "IMAGE_DISPLAY_TYPE_LOGO"
+          },
+          "subject": {
+            "id": 1,
+            "name": "Synthetic player",
+            "subjectType": "player"
+          }
+        },
+        "cashValue": null,
+        "avgPx": null,
+        "fees": null,
+        "baseCost": null,
+        "costPerShare": null,
+        "netPositionDecimal": "2.25",
+        "qtyBoughtDecimal": "",
+        "qtySoldDecimal": "",
+        "bodPositionDecimal": "",
+        "comboLegDetails": [
+          {
+            "slug": "synthetic-leg",
+            "icon": "",
+            "title": "Synthetic leg",
+            "outcome": "Yes",
+            "eventSlug": "synthetic-event",
+            "teamId": 1,
+            "team": {
+              "id": 1,
+              "name": "Synthetic team",
+              "providerId": 0,
+              "ordering": "home",
+              "longIcon": "long.png",
+              "shortIcon": "short.png",
+              "displayAbbreviation": "SYN",
+              "ranking": "9007199254740993",
+              "conference": "synthetic-conference",
+              "providerIds": [
+                {
+                  "provider": "PROVIDER_GRID",
+                  "providerId": "synthetic-provider-id"
+                }
+              ],
+              "longIconDark": "long-dark.png",
+              "shortIconDark": "short-dark.png",
+              "color": {
+                "light": "#000000",
+                "dark": "#ffffff"
+              },
+              "imageDisplayType": "IMAGE_DISPLAY_TYPE_LOGO"
+            },
+            "subject": {
+              "id": 1,
+              "name": "Synthetic player",
+              "subjectType": "player"
+            },
+            "eventId": "synthetic-event-id",
+            "outcomeSide": "OUTCOME_SIDE_YES",
+            "eventGroupTitle": "",
+            "eventStartTime": null,
+            "live": false,
+            "indicativePrice": null,
+            "settlement": {
+              "settlementPrice": {
+                "value": "1",
+                "currency": "USD"
+              },
+              "settlementSetTime": null
+            },
+            "state": "COMBO_LEG_STATE_WON"
+          }
+        ],
+        "positionId": "synthetic-user:LONG:synthetic-combo"
+      },
+      "updateTime": null,
+      "entryType": "LEDGER_ENTRY_TYPE_UNDEFINED",
+      "tradeId": "synthetic-trade",
+      "referenceId": "",
+      "description": "",
+      "allocationGroupId": "",
+      "transferReferenceTradeIds": [],
+      "shortTransfer": false,
+      "updateTradeDate": null
+    }
+  },
+  {
+    "requestId": "balance-test",
+    "subscriptionType": "SUBSCRIPTION_TYPE_ACCOUNT_BALANCE",
+    "accountBalancesUpdate": {
+      "balanceChange": {
+        "beforeBalance": {
+          "currentBalance": 0,
+          "currency": "",
+          "lastUpdated": null,
+          "buyingPower": 100,
+          "assetNotional": 0,
+          "assetAvailable": 0,
+          "pendingCredit": 0,
+          "openOrders": 0,
+          "unsettledFunds": 0,
+          "pendingWithdrawals": [],
+          "marginRequirement": 0
+        },
+        "afterBalance": {
+          "currentBalance": 0,
+          "currency": "",
+          "lastUpdated": null,
+          "buyingPower": 0,
+          "assetNotional": 0,
+          "assetAvailable": 0,
+          "pendingCredit": 0,
+          "openOrders": 0,
+          "unsettledFunds": 0,
+          "pendingWithdrawals": [],
+          "marginRequirement": 0,
+          "balanceReservation": 0,
+          "depositReservation": 0,
+          "bonusReservation": 0,
+          "displayedBonus": 0,
+          "displayedAvailableSoon": 0,
+          "displayedCash": 0,
+          "availableToWithdraw": 0,
+          "bonusHold": 0
+        },
+        "description": "synthetic change",
+        "updateTime": null,
+        "modifiedSecurityId": "",
+        "entryType": "LEDGER_ENTRY_TYPE_UNDEFINED",
+        "accountName": "",
+        "id": ""
+      }
+    }
+  },
+  {
+    "requestId": "balance-test",
+    "subscriptionType": "SUBSCRIPTION_TYPE_ACCOUNT_BALANCE",
+    "accountBalancesSnapshot": {
+      "balances": [
+        {
+          "currentBalance": 0,
+          "currency": "",
+          "lastUpdated": null,
+          "buyingPower": 100,
+          "assetNotional": 0,
+          "assetAvailable": 0,
+          "pendingCredit": 0,
+          "openOrders": 0,
+          "unsettledFunds": 0,
+          "pendingWithdrawals": [],
+          "marginRequirement": 0
+        }
+      ]
+    }
+  }
+]

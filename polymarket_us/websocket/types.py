@@ -2,7 +2,7 @@
 
 from typing import Literal, TypedDict
 
-from polymarket_us.types import Amount, Execution, Order, UserPosition
+from polymarket_us.types import Amount, Execution, Order, UserBalance, UserPosition
 
 PrivateSubscriptionType = Literal[
     "SUBSCRIPTION_TYPE_ORDER",
@@ -74,50 +74,68 @@ class _PositionSubscriptionSnapshot(TypedDict):
 
 
 class PositionSnapshot(TypedDict):
-    """Position snapshot message."""
+    """Legacy position snapshot; the current gateway sends updates only."""
 
     requestId: str
     subscriptionType: Literal["SUBSCRIPTION_TYPE_POSITION"]
     positionSubscriptionSnapshot: _PositionSubscriptionSnapshot
 
 
-class _PositionSubscriptionUpdate(TypedDict):
-    marketSlug: str
-    position: UserPosition
+class _PositionSubscription(TypedDict):
+    beforePosition: UserPosition | None
+    afterPosition: UserPosition | None
+    updateTime: str | None
+    entryType: str
+    tradeId: str
+    referenceId: str
+    description: str
+    allocationGroupId: str
+    transferReferenceTradeIds: list[str]
+    shortTransfer: bool
+    updateTradeDate: str | None
 
 
 class PositionUpdate(TypedDict):
-    """Position update message."""
+    """Position change in the current gateway wire format."""
 
     requestId: str
     subscriptionType: Literal["SUBSCRIPTION_TYPE_POSITION"]
-    positionSubscriptionUpdate: _PositionSubscriptionUpdate
+    positionSubscription: _PositionSubscription
 
 
-class _AccountBalanceSubscriptionSnapshot(TypedDict):
-    balance: float
-    buyingPower: float
+class _AccountBalancesSnapshot(TypedDict):
+    balances: list[UserBalance]
 
 
 class AccountBalanceSnapshot(TypedDict):
-    """Account balance snapshot message."""
+    """Account balance snapshot in the current gateway wire format."""
 
     requestId: str
     subscriptionType: Literal["SUBSCRIPTION_TYPE_ACCOUNT_BALANCE"]
-    accountBalanceSubscriptionSnapshot: _AccountBalanceSubscriptionSnapshot
+    accountBalancesSnapshot: _AccountBalancesSnapshot
 
 
-class _AccountBalanceSubscriptionUpdate(TypedDict):
-    balance: float
-    buyingPower: float
+class _BalanceChange(TypedDict):
+    beforeBalance: UserBalance | None
+    afterBalance: UserBalance | None
+    description: str
+    updateTime: str | None
+    modifiedSecurityId: str
+    entryType: str
+    accountName: str
+    id: str
+
+
+class _AccountBalancesUpdate(TypedDict):
+    balanceChange: _BalanceChange
 
 
 class AccountBalanceUpdate(TypedDict):
-    """Account balance update message."""
+    """Account balance change in the current gateway wire format."""
 
     requestId: str
     subscriptionType: Literal["SUBSCRIPTION_TYPE_ACCOUNT_BALANCE"]
-    accountBalanceSubscriptionUpdate: _AccountBalanceSubscriptionUpdate
+    accountBalancesUpdate: _AccountBalancesUpdate
 
 
 class _OrderBookLevel(TypedDict):

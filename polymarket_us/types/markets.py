@@ -4,6 +4,44 @@ from typing import Literal, TypedDict
 
 from polymarket_us.types.common import Amount, PaginationParams
 
+MarketProvider = Literal[
+    "PROVIDER_UNSPECIFIED",
+    "PROVIDER_SPORTSDATAIO",
+    "PROVIDER_SPORTRADAR",
+    "PROVIDER_OPTICODDS",
+    "PROVIDER_PANDASCORE",
+    "PROVIDER_INFRONT",
+    "PROVIDER_ENETPULSE",
+    "PROVIDER_UFC",
+    "PROVIDER_ODDSPAPI",
+    "PROVIDER_BETER",
+    "PROVIDER_CHAMPION_DATA",
+    "PROVIDER_ALTSPORTSDATA",
+    "PROVIDER_GRID",
+]
+
+ImageDisplayType = Literal[
+    "IMAGE_DISPLAY_TYPE_UNSPECIFIED",
+    "IMAGE_DISPLAY_TYPE_HEADSHOT",
+    "IMAGE_DISPLAY_TYPE_LOGO",
+    "IMAGE_DISPLAY_TYPE_FLAG",
+    "IMAGE_DISPLAY_TYPE_ARTWORK",
+]
+
+
+class MarketTeamProvider(TypedDict):
+    """Provider identity on a market team."""
+
+    provider: MarketProvider
+    providerId: str
+
+
+class ResolvedColor(TypedDict):
+    """Display colors for light and dark mode."""
+
+    light: str
+    dark: str
+
 
 class Team(TypedDict, total=False):
     """Sports team information."""
@@ -19,6 +57,34 @@ class Team(TypedDict, total=False):
     homeIcon: str
     awayIcon: str
     colorPrimary: str
+    providerId: int
+    ordering: str
+    longIcon: str
+    shortIcon: str
+    displayAbbreviation: str
+    ranking: str
+    conference: str
+    providerIds: list[MarketTeamProvider]
+    longIconDark: str
+    shortIconDark: str
+    color: ResolvedColor
+    imageDisplayType: ImageDisplayType
+
+
+class Subject(TypedDict, total=False):
+    """Subject information for a combo leg."""
+
+    id: int
+    name: str
+    displayName: str
+    description: str
+    subjectType: str
+    image: str
+    color: str
+    darkColor: str
+    createdAt: str
+    updatedAt: str
+    slug: str
 
 
 class MarketDetail(TypedDict, total=False):

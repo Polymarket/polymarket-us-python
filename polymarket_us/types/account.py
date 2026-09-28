@@ -12,7 +12,7 @@ class PendingWithdrawal(TypedDict, total=False):
     description: str
     acknowledged: bool
     bankId: str
-    creationTime: str
+    creationTime: str | None
     destinationAccountName: str
 
 
@@ -21,7 +21,7 @@ class UserBalance(TypedDict, total=False):
 
     currentBalance: float
     currency: str
-    lastUpdated: str
+    lastUpdated: str | None
     buyingPower: float
     assetNotional: float
     assetAvailable: float
@@ -31,6 +31,13 @@ class UserBalance(TypedDict, total=False):
     pendingWithdrawals: list[PendingWithdrawal]
     marginRequirement: float
     balanceReservation: float
+    depositReservation: float
+    bonusReservation: float
+    displayedBonus: float
+    displayedAvailableSoon: float
+    displayedCash: float
+    availableToWithdraw: float
+    bonusHold: float
 
 
 class GetAccountBalancesResponse(TypedDict):

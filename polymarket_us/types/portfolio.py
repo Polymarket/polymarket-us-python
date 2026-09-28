@@ -2,6 +2,7 @@
 
 from typing import Literal, TypedDict
 
+from polymarket_us.types.combos import ComboLegDetail
 from polymarket_us.types.common import Amount
 from polymarket_us.types.orders import MarketMetadata
 
@@ -24,14 +25,25 @@ class UserPosition(TypedDict, total=False):
     netPosition: str
     qtyBought: str
     qtySold: str
-    cost: Amount
+    cost: Amount | None
     realized: Amount
     bodPosition: str
     expired: bool
-    updateTime: str
-    marketMetadata: MarketMetadata
-    cashValue: Amount
+    updateTime: str | None
+    marketMetadata: MarketMetadata | None
+    cashValue: Amount | None
     qtyAvailable: str
+    avgPx: Amount | None
+    fees: Amount | None
+    baseCost: Amount | None
+    costPerShare: Amount | None
+    netPositionDecimal: str
+    qtyBoughtDecimal: str
+    qtySoldDecimal: str
+    bodPositionDecimal: str
+    qtyAvailableDecimal: str
+    comboLegDetails: list[ComboLegDetail]
+    positionId: str
 
 
 class GetUserPositionsParams(TypedDict, total=False):

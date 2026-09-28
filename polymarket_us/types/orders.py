@@ -3,9 +3,11 @@
 from typing import Literal, TypedDict
 
 from polymarket_us.types.common import Amount
+from polymarket_us.types.markets import Subject, Team
 
 OrderType = Literal["ORDER_TYPE_LIMIT", "ORDER_TYPE_MARKET"]
 OrderSide = Literal["ORDER_SIDE_BUY", "ORDER_SIDE_SELL"]
+OutcomeSide = Literal["OUTCOME_SIDE_UNSPECIFIED", "OUTCOME_SIDE_YES", "OUTCOME_SIDE_NO"]
 OrderIntent = Literal[
     "ORDER_INTENT_BUY_LONG",
     "ORDER_INTENT_SELL_LONG",
@@ -64,7 +66,9 @@ class MarketMetadata(TypedDict, total=False):
     outcome: str
     eventSlug: str
     teamId: int
-    team: dict[str, object]
+    team: Team
+    subject: Subject
+    eventId: str
 
 
 class Order(TypedDict, total=False):
