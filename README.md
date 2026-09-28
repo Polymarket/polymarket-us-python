@@ -344,13 +344,59 @@ WebSocket methods (`connect()`, `subscribe()`, `close()`) are async and must be 
 **Private WebSocket Events:**
 - `order_snapshot` - Initial orders snapshot
 - `order_update` - Order execution updates
-- `position_snapshot` - Initial positions snapshot
+- `position_snapshot` - Legacy snapshot event; the current gateway sends no position snapshot
 - `position_update` - Position changes
 - `account_balance_snapshot` - Initial balance
 - `account_balance_update` - Balance changes
 - `heartbeat` - Connection keepalive
 - `error` - Error events
 - `close` - Connection closed
+
+`position_update` now also recognizes `positionSubscription`, and
+`account_balance_update` recognizes `accountBalancesUpdate`. Existing dispatch
+aliases are retained, and both the named callback and `message` receive the
+original envelope without renaming fields. An empty `error` string no longer
+suppresses a successful data callback.
+
+#### Private callback type migration (2.0.0)
+
+`PositionUpdate`, `AccountBalanceSnapshot` and `AccountBalanceUpdate` now describe
+the current gateway payloads. Replace `positionSubscriptionUpdate.position` with
+`positionSubscription.beforePosition` / `afterPosition`. Replace the flat
+`accountBalanceSubscriptionSnapshot` and `accountBalanceSubscriptionUpdate`
+fields with `accountBalancesSnapshot.balances` and
+`accountBalancesUpdate.balanceChange.beforeBalance` / `afterBalance`.
+Before/after values and timestamps can be `None`; balance entries use
+`currentBalance` and `buyingPower`.
+
+```python
+from polymarket_us.websocket import AccountBalanceSnapshot, AccountBalanceUpdate, PositionUpdate
+
+
+def on_position(data: PositionUpdate) -> None:
+    change = data["positionSubscription"]
+    print(change["beforePosition"], change["afterPosition"])
+
+
+def on_balances(data: AccountBalanceSnapshot) -> None:
+    print(data["accountBalancesSnapshot"]["balances"])
+
+
+def on_balance(data: AccountBalanceUpdate) -> None:
+    after = data["accountBalancesUpdate"]["balanceChange"]["afterBalance"]
+    if after is not None:
+        print(after.get("currentBalance"), after.get("currency"))
+
+
+private_ws.on("position_update", on_position)
+private_ws.on("account_balance_snapshot", on_balances)
+private_ws.on("account_balance_update", on_balance)
+```
+
+These annotations describe current server messages. Applications consuming legacy
+aliases must continue reading their original payload shapes. `PositionSnapshot`
+remains exported for legacy messages; use `portfolio.positions()` for an initial
+positions read. Position subscriptions deliver subsequent changes only.
 
 **Markets WebSocket Events:**
 - `market_data` - Full order book updates

@@ -1,0 +1,134 @@
+[
+  {
+    "requestId": "positions-test",
+    "subscriptionType": "SUBSCRIPTION_TYPE_POSITION",
+    "positionSubscription": {
+      "beforePosition": {
+        "netPosition": "1",
+        "qtyBought": "0",
+        "qtySold": "0",
+        "cost": {
+          "value": "0.5",
+          "currency": "USD"
+        },
+        "realized": {
+          "value": "0",
+          "currency": "USD"
+        },
+        "bodPosition": "0",
+        "expired": false,
+        "updateTime": null,
+        "marketMetadata": null,
+        "cashValue": null,
+        "avgPx": null,
+        "fees": null,
+        "baseCost": null,
+        "costPerShare": null,
+        "netPositionDecimal": "1.25",
+        "qtyBoughtDecimal": "",
+        "qtySoldDecimal": "",
+        "bodPositionDecimal": "",
+        "comboLegDetails": [],
+        "positionId": ""
+      },
+      "afterPosition": {
+        "netPosition": "2",
+        "qtyBought": "0",
+        "qtySold": "0",
+        "cost": {
+          "value": "0.5",
+          "currency": "USD"
+        },
+        "realized": {
+          "value": "0",
+          "currency": "USD"
+        },
+        "bodPosition": "0",
+        "expired": false,
+        "updateTime": null,
+        "marketMetadata": null,
+        "cashValue": null,
+        "avgPx": null,
+        "fees": null,
+        "baseCost": null,
+        "costPerShare": null,
+        "netPositionDecimal": "2.25",
+        "qtyBoughtDecimal": "",
+        "qtySoldDecimal": "",
+        "bodPositionDecimal": "",
+        "comboLegDetails": [],
+        "positionId": ""
+      },
+      "updateTime": null,
+      "entryType": "LEDGER_ENTRY_TYPE_UNDEFINED",
+      "tradeId": "synthetic-trade",
+      "referenceId": "",
+      "description": "",
+      "allocationGroupId": "",
+      "transferReferenceTradeIds": [],
+      "shortTransfer": false,
+      "updateTradeDate": null
+    }
+  },
+  {
+    "requestId": "balance-test",
+    "subscriptionType": "SUBSCRIPTION_TYPE_ACCOUNT_BALANCE",
+    "accountBalancesUpdate": {
+      "balanceChange": {
+        "beforeBalance": {
+          "currentBalance": 0,
+          "currency": "",
+          "lastUpdated": null,
+          "buyingPower": 100,
+          "assetNotional": 0,
+          "assetAvailable": 0,
+          "pendingCredit": 0,
+          "openOrders": 0,
+          "unsettledFunds": 0,
+          "pendingWithdrawals": [],
+          "marginRequirement": 0
+        },
+        "afterBalance": {
+          "currentBalance": 0,
+          "currency": "",
+          "lastUpdated": null,
+          "buyingPower": 0,
+          "assetNotional": 0,
+          "assetAvailable": 0,
+          "pendingCredit": 0,
+          "openOrders": 0,
+          "unsettledFunds": 0,
+          "pendingWithdrawals": [],
+          "marginRequirement": 0
+        },
+        "description": "synthetic change",
+        "updateTime": null,
+        "modifiedSecurityId": "",
+        "entryType": "LEDGER_ENTRY_TYPE_UNDEFINED",
+        "accountName": "",
+        "id": ""
+      }
+    }
+  },
+  {
+    "requestId": "balance-test",
+    "subscriptionType": "SUBSCRIPTION_TYPE_ACCOUNT_BALANCE",
+    "accountBalancesSnapshot": {
+      "balances": [
+        {
+          "currentBalance": 0,
+          "currency": "",
+          "lastUpdated": null,
+          "buyingPower": 100,
+          "assetNotional": 0,
+          "assetAvailable": 0,
+          "pendingCredit": 0,
+          "openOrders": 0,
+          "unsettledFunds": 0,
+          "pendingWithdrawals": [],
+          "marginRequirement": 0
+        }
+      ]
+    }
+  }
+]

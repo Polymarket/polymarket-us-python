@@ -24,13 +24,13 @@ class UserPosition(TypedDict, total=False):
     netPosition: str
     qtyBought: str
     qtySold: str
-    cost: Amount
+    cost: Amount | None
     realized: Amount
     bodPosition: str
     expired: bool
-    updateTime: str
-    marketMetadata: MarketMetadata
-    cashValue: Amount
+    updateTime: str | None
+    marketMetadata: MarketMetadata | None
+    cashValue: Amount | None
     qtyAvailable: str
 
 

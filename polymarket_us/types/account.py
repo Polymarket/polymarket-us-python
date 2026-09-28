@@ -12,7 +12,7 @@ class PendingWithdrawal(TypedDict, total=False):
     description: str
     acknowledged: bool
     bankId: str
-    creationTime: str
+    creationTime: str | None
     destinationAccountName: str
 
 
@@ -21,7 +21,7 @@ class UserBalance(TypedDict, total=False):
 
     currentBalance: float
     currency: str
-    lastUpdated: str
+    lastUpdated: str | None
     buyingPower: float
     assetNotional: float
     assetAvailable: float

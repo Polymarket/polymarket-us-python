@@ -72,7 +72,7 @@ class PrivateWebSocket(BaseWebSocket):
 
         if "heartbeat" in message:
             self._emit("heartbeat")
-        elif "error" in message:
+        elif message.get("error"):
             self._emit(
                 "error",
                 WebSocketError(message["error"], message.get("requestId")),
@@ -83,11 +83,19 @@ class PrivateWebSocket(BaseWebSocket):
             self._emit("order_update", message)
         elif "positionSubscriptionSnapshot" in message or "positionsSnapshot" in message:
             self._emit("position_snapshot", message)
-        elif "positionSubscriptionUpdate" in message or "positionUpdate" in message:
+        elif (
+            "positionSubscription" in message
+            or "positionSubscriptionUpdate" in message
+            or "positionUpdate" in message
+        ):
             self._emit("position_update", message)
         elif (
             "accountBalanceSubscriptionSnapshot" in message or "accountBalancesSnapshot" in message
         ):
             self._emit("account_balance_snapshot", message)
-        elif "accountBalanceSubscriptionUpdate" in message or "accountBalanceUpdate" in message:
+        elif (
+            "accountBalancesUpdate" in message
+            or "accountBalanceSubscriptionUpdate" in message
+            or "accountBalanceUpdate" in message
+        ):
             self._emit("account_balance_update", message)

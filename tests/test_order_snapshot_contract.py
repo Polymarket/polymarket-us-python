@@ -40,26 +40,26 @@ async def test_live_and_snapshot_subscriptions_use_distinct_types(ws: PrivateWeb
     ]
 
 
-@pytest.mark.parametrize("failed", [False, True])
-def test_terminal_snapshot_dispatch(ws: PrivateWebSocket, failed: bool) -> None:
+@pytest.mark.parametrize("error", [None, "", "deadline exceeded"])
+def test_terminal_snapshot_dispatch(ws: PrivateWebSocket, error: str | None) -> None:
     snapshot = Mock()
-    error = Mock()
+    errors = Mock()
     message = Mock()
     ws.on("order_snapshot", snapshot)
-    ws.on("error", error)
+    ws.on("error", errors)
     ws.on("message", message)
     frame = dict(TERMINAL)
-    if failed:
-        frame["error"] = "deadline exceeded"
+    if error is not None:
+        frame["error"] = error
     ws._handle_message(json.dumps(frame))
     message.assert_called_once_with(frame)
-    if failed:
+    if error:
         snapshot.assert_not_called()
-        error.assert_called_once()
-        failure = error.call_args.args[0]
+        errors.assert_called_once()
+        failure = errors.call_args.args[0]
         assert isinstance(failure, WebSocketError)
         assert failure.request_id == "snapshot-1"
         assert str(failure) == "deadline exceeded"
     else:
         snapshot.assert_called_once_with(frame)
-        error.assert_not_called()
+        errors.assert_not_called()
