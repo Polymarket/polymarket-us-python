@@ -7,13 +7,39 @@ from polymarket_us.types import (
     ComboLegDetail,
     ComboLegState,
     ComboSettlement,
+    ImageDisplayType,
+    MarketMetadata,
+    MarketProvider,
+    MarketTeamProvider,
     OutcomeSide,
+    ResolvedColor,
     Subject,
+    Team,
     UserBalance,
     UserPosition,
 )
 from polymarket_us.websocket import AccountBalanceSnapshot, AccountBalanceUpdate, PositionUpdate
 
+provider: MarketProvider = "PROVIDER_GRID"
+team_provider: MarketTeamProvider = {"provider": provider, "providerId": "synthetic-provider-id"}
+colors: ResolvedColor = {"light": "#000000", "dark": "#ffffff"}
+image_display: ImageDisplayType = "IMAGE_DISPLAY_TYPE_LOGO"
+team: Team = {
+    "id": 1,
+    "name": "Synthetic team",
+    "providerId": 0,
+    "ordering": "home",
+    "longIcon": "long.png",
+    "shortIcon": "short.png",
+    "displayAbbreviation": "SYN",
+    "ranking": "9007199254740993",
+    "conference": "synthetic-conference",
+    "providerIds": [team_provider],
+    "longIconDark": "long-dark.png",
+    "shortIconDark": "short-dark.png",
+    "color": colors,
+    "imageDisplayType": image_display,
+}
 subject: Subject = {"id": 1, "name": "Synthetic player", "subjectType": "player"}
 settlement: ComboSettlement = {
     "settlementPrice": {"value": "1", "currency": "USD"},
@@ -22,7 +48,7 @@ settlement: ComboSettlement = {
 leg: ComboLegDetail = {
     "slug": "synthetic-leg",
     "teamId": 1,
-    "team": {"id": 1, "name": "Synthetic team"},
+    "team": team,
     "subject": subject,
     "outcomeSide": "OUTCOME_SIDE_YES",
     "eventStartTime": None,
@@ -45,7 +71,7 @@ position: PositionUpdate = {
         "afterPosition": {
             "netPosition": "2",
             "cost": None,
-            "marketMetadata": None,
+            "marketMetadata": {"eventId": "synthetic-event", "team": team, "subject": subject},
             "cashValue": None,
             "updateTime": None,
             "avgPx": None,
@@ -146,3 +172,28 @@ def read_combo_settlement(data: ComboLegDetail) -> Amount | None:
 def read_displayed_cash(data: AccountBalanceUpdate) -> float | None:
     after = data["accountBalancesUpdate"]["balanceChange"]["afterBalance"]
     return after.get("displayedCash") if after is not None else None
+
+
+def read_combo_team_provider(data: ComboLegDetail) -> str | None:
+    value = data.get("team")
+    providers = value.get("providerIds", []) if value is not None else []
+    return providers[0]["providerId"] if providers else None
+
+
+def read_combo_team_rank(data: ComboLegDetail) -> str | None:
+    value = data.get("team")
+    return value.get("ranking") if value is not None else None
+
+
+def read_combo_team_color(data: ComboLegDetail) -> str | None:
+    value = data.get("team")
+    color = value.get("color") if value is not None else None
+    return color["dark"] if color is not None else None
+
+
+def read_position_metadata(data: UserPosition) -> MarketMetadata | None:
+    return data.get("marketMetadata")
+
+
+def read_metadata(data: MarketMetadata) -> tuple[str | None, Team | None, Subject | None]:
+    return data.get("eventId"), data.get("team"), data.get("subject")

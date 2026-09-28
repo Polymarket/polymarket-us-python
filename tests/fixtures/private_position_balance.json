@@ -46,7 +46,44 @@
         "bodPosition": "0",
         "expired": false,
         "updateTime": null,
-        "marketMetadata": null,
+        "marketMetadata": {
+          "slug": "synthetic-combo",
+          "icon": "",
+          "title": "Synthetic combo",
+          "outcome": "Yes",
+          "eventSlug": "synthetic-event",
+          "eventId": "synthetic-event-id",
+          "teamId": 1,
+          "team": {
+            "id": 1,
+            "name": "Synthetic team",
+            "providerId": 0,
+            "ordering": "home",
+            "longIcon": "long.png",
+            "shortIcon": "short.png",
+            "displayAbbreviation": "SYN",
+            "ranking": "9007199254740993",
+            "conference": "synthetic-conference",
+            "providerIds": [
+              {
+                "provider": "PROVIDER_GRID",
+                "providerId": "synthetic-provider-id"
+              }
+            ],
+            "longIconDark": "long-dark.png",
+            "shortIconDark": "short-dark.png",
+            "color": {
+              "light": "#000000",
+              "dark": "#ffffff"
+            },
+            "imageDisplayType": "IMAGE_DISPLAY_TYPE_LOGO"
+          },
+          "subject": {
+            "id": 1,
+            "name": "Synthetic player",
+            "subjectType": "player"
+          }
+        },
         "cashValue": null,
         "avgPx": null,
         "fees": null,
@@ -66,7 +103,27 @@
             "teamId": 1,
             "team": {
               "id": 1,
-              "name": "Synthetic team"
+              "name": "Synthetic team",
+              "providerId": 0,
+              "ordering": "home",
+              "longIcon": "long.png",
+              "shortIcon": "short.png",
+              "displayAbbreviation": "SYN",
+              "ranking": "9007199254740993",
+              "conference": "synthetic-conference",
+              "providerIds": [
+                {
+                  "provider": "PROVIDER_GRID",
+                  "providerId": "synthetic-provider-id"
+                }
+              ],
+              "longIconDark": "long-dark.png",
+              "shortIconDark": "short-dark.png",
+              "color": {
+                "light": "#000000",
+                "dark": "#ffffff"
+              },
+              "imageDisplayType": "IMAGE_DISPLAY_TYPE_LOGO"
             },
             "subject": {
               "id": 1,
