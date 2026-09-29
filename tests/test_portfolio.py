@@ -86,13 +86,20 @@ class TestPortfolioActivities:
         mock_response = MagicMock()
         mock_response.is_success = True
         mock_response.text = '{"activities": []}'
-        mock_response.json.return_value = {"activities": [{"type": "ACTIVITY_TYPE_TRADE"}]}
+        mock_response.json.return_value = {
+            "activities": [
+                {"type": "ACTIVITY_TYPE_TRADE", "trade": {"qty": "0", "qtyDecimal": "0.0100"}}
+            ]
+        }
         mock_request.return_value = mock_response
 
         response = auth_client.portfolio.activities()
 
         assert "activities" in response
         assert len(response["activities"]) == 1
+        trade = response["activities"][0]["trade"]
+        assert trade["qty"] == "0"
+        assert trade["qtyDecimal"] == "0.0100"
 
     @patch.object(httpx.Client, "request")
     def test_uses_correct_path(self, mock_request: MagicMock, auth_client: PolymarketUS) -> None:

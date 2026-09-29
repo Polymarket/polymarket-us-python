@@ -5,7 +5,12 @@ import os
 from typing import Any
 
 from polymarket_us import PolymarketUS
-from polymarket_us.websocket import AccountBalanceSnapshot, AccountBalanceUpdate, PositionUpdate
+from polymarket_us.websocket import (
+    AccountBalanceSnapshot,
+    AccountBalanceUpdate,
+    PositionUpdate,
+    RFQEvent,
+)
 
 
 async def main() -> None:
@@ -19,7 +24,7 @@ async def main() -> None:
 
     client = PolymarketUS(key_id=key_id, secret_key=secret_key)
 
-    # Private WebSocket for orders, positions, and balances
+    # Private WebSocket for orders, positions, balances, and RFQs
     private_ws = client.ws.private()
 
     def on_order_snapshot(data: dict[str, Any]) -> None:
@@ -46,6 +51,9 @@ async def main() -> None:
         if after is not None:
             print(f"[Private] Balance: {after.get('currentBalance')} {after.get('currency')}")
 
+    def on_rfq_event(data: RFQEvent) -> None:
+        print(f"[Private] RFQ event: {data['rfqEvent']}")
+
     def on_error(error: Exception) -> None:
         print(f"[Error] {error}")
 
@@ -57,6 +65,7 @@ async def main() -> None:
     private_ws.on("position_update", on_position_update)
     private_ws.on("account_balance_snapshot", on_balance_snapshot)
     private_ws.on("account_balance_update", on_balance_update)
+    private_ws.on("rfq_event", on_rfq_event)
     private_ws.on("error", on_error)
     private_ws.on("heartbeat", on_heartbeat)
 
@@ -66,6 +75,7 @@ async def main() -> None:
     await private_ws.subscribe_orders("orders-1")
     await private_ws.subscribe_positions("positions-1")
     await private_ws.subscribe_account_balance("balance-1")
+    await private_ws.subscribe_rfq("rfqs-1")
 
     # Markets WebSocket for order book and trades
     markets_ws = client.ws.markets()

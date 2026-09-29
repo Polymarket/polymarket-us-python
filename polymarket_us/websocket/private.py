@@ -9,7 +9,7 @@ from .types import PrivateSubscriptionType
 
 
 class PrivateWebSocket(BaseWebSocket):
-    """WebSocket for private data (orders, positions, balances)."""
+    """WebSocket for private data (orders, positions, balances, RFQs)."""
 
     def __init__(self, **kwargs: str) -> None:
         """Initialize private WebSocket."""
@@ -44,6 +44,10 @@ class PrivateWebSocket(BaseWebSocket):
             request_id: Unique request ID
         """
         await self.subscribe(request_id, "SUBSCRIPTION_TYPE_ACCOUNT_BALANCE")
+
+    async def subscribe_rfq(self, request_id: str) -> None:
+        """Subscribe to RFQ events without a market filter."""
+        await self.subscribe(request_id, "SUBSCRIPTION_TYPE_RFQ")
 
     async def subscribe_all(
         self,
@@ -99,3 +103,5 @@ class PrivateWebSocket(BaseWebSocket):
             or "accountBalanceUpdate" in message
         ):
             self._emit("account_balance_update", message)
+        elif "rfqEvent" in message:
+            self._emit("rfq_event", message)
