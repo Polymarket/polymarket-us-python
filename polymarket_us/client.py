@@ -27,6 +27,7 @@ from polymarket_us.resources import (
     Markets,
     Orders,
     Portfolio,
+    RFQs,
     Search,
     Series,
     Sports,
@@ -96,6 +97,7 @@ class PolymarketUS:
         self.series = Series(self)
         self.sports = Sports(self)
         self.search = Search(self)
+        self.rfqs = RFQs(self)
         self.ws = _WebSocketFactory(self)
 
     def get(
