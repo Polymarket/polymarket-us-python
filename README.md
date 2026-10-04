@@ -298,6 +298,61 @@ Handle `None` for book `stats` and `transactTime`, and BBO `bestBid`, `bestAsk`,
 | `orders.cancel_all(params?)` | Cancel all open orders |
 | `orders.preview(params)` | Preview an order |
 | `orders.close_position(params)` | Close a position |
+| `orders.create_many(params)` | Create up to 20 orders |
+| `orders.cancel_many(params)` | Submit up to 20 cancellations |
+| `orders.modify_many(params)` | Submit up to 20 modifications |
+
+#### Batch orders
+
+Use `orders.create_many(params)`, `orders.cancel_many(params)`, and
+`orders.modify_many(params)` for up to 20 orders per request. Each accepts an
+`orders` list; cancel and modify entries include `orderId` and `marketSlug`.
+
+```python
+created = client.orders.create_many(
+    {
+        "orders": [
+            {
+                "marketSlug": "btc-100k",
+                "intent": "ORDER_INTENT_BUY_LONG",
+                "type": "ORDER_TYPE_LIMIT",
+                "price": {"value": "0.55", "currency": "USD"},
+                "quantity": 10,
+            },
+        ]
+    }
+)
+# For existing open orders:
+modified = client.orders.modify_many(
+    {
+        "orders": [
+            {
+                "orderId": "existing-order-id",
+                "marketSlug": "btc-100k",
+                "price": {"value": "0.50", "currency": "USD"},
+                "quantity": 10,
+            },
+        ]
+    }
+)
+canceled = client.orders.cancel_many(
+    {
+        "orders": [
+            {"orderId": "existing-order-id", "marketSlug": "btc-100k"},
+        ]
+    }
+)
+```
+
+With `AsyncPolymarketUS`, await each call. Batches are sent as one request and
+are never automatically retried or split. Invalid or oversized batches are
+reported through the existing API exceptions.
+
+`createdOrderIds` contains exchange-assigned IDs. `canceledOrderIds` and
+`modifiedOrderIds` echo the IDs submitted, and do **not** confirm each order
+was canceled or modified; unknown IDs can be ignored by the exchange. Follow
+`order_update` events for actual acceptance, fills, cancellations, replacements
+and rejections.
 
 ### Portfolio (Authenticated)
 
