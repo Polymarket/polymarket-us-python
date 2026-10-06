@@ -28,6 +28,7 @@ from polymarket_us.resources import (
     AsyncMarkets,
     AsyncOrders,
     AsyncPortfolio,
+    AsyncRFQs,
     AsyncSearch,
     AsyncSeries,
     AsyncSports,
@@ -84,6 +85,7 @@ class AsyncPolymarketUS:
         self.series = AsyncSeries(self)
         self.sports = AsyncSports(self)
         self.search = AsyncSearch(self)
+        self.rfqs = AsyncRFQs(self)
         self.ws = _AsyncWebSocketFactory(self)
 
     async def get(

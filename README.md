@@ -354,6 +354,44 @@ was canceled or modified; unknown IDs can be ignored by the exchange. Follow
 `order_update` events for actual acceptance, fills, cancellations, replacements
 and rejections.
 
+### RFQ trades (Authenticated)
+
+`client.rfqs.trades(params=None)` returns one page of anonymous original fills
+where either order originated from an RFQ, including later fills on resting
+orders. API credentials and access to the retail RFQ beta are required.
+
+```python
+from polymarket_us.types import GetRFQTradesParams
+
+params: GetRFQTradesParams = {
+    "limit": 100,
+    "startTime": "2026-10-01T00:00:00Z",
+    "endTime": "2026-10-02T00:00:00Z",
+}
+while True:
+    page = client.rfqs.trades(params)
+    for trade in page["trades"]:
+        print(trade["tradeId"], trade["price"], trade["qtyDecimal"])
+    if not page["cursor"]:
+        break
+    params["cursor"] = page["cursor"]
+```
+
+With `AsyncPolymarketUS`, use `await client.rfqs.trades(params)`. `limit` defaults
+to 100 when omitted or zero and otherwise accepts 1–100. `startTime` is inclusive;
+`endTime` is exclusive. Both accept RFC 3339 timestamp strings. The optional
+`symbol` filter is an exact, case-sensitive instrument symbol.
+
+Results are newest first. Keep the same filters and limit on subsequent pages,
+and continue while `cursor` is nonempty, even if `trades` is empty. The SDK does
+not paginate automatically. Prices and quantities remain exact decimal strings;
+`executedTime` is a timestamp string or `None`.
+
+History is eventually consistent. To recover gaps in the live RFQ stream,
+requery overlapping time windows and deduplicate by `tradeId`. These anonymous
+prints are not account reconciliation data; later corrections and trade busts
+do not amend them.
+
 ### Portfolio (Authenticated)
 
 | Method | Description |
@@ -403,7 +441,7 @@ WebSocket methods (`connect()`, `subscribe()`, `close()`) are async and must be 
 - `position_update` - Position changes
 - `account_balance_snapshot` - Initial balance
 - `account_balance_update` - Balance changes
-- `rfq_event` - RFQ and quote lifecycle events
+- `rfq_event` - RFQ/quote lifecycle events and anonymous RFQ trades
 - `heartbeat` - Connection keepalive
 - `error` - Error events
 - `close` - Connection closed
@@ -414,7 +452,7 @@ aliases are retained, and both the named callback and `message` receive the
 original envelope without renaming fields. An empty `error` string no longer
 suppresses a successful data callback.
 
-RFQ subscriptions deliver lifecycle events through `rfq_event` without an initial
+RFQ subscriptions deliver lifecycle events and trade prints through `rfq_event` without an initial
 snapshot. Market filters are not supported.
 
 ```python
@@ -427,6 +465,10 @@ def on_rfq_event(data: RFQEvent) -> None:
     rfq = created["rfq"] if created is not None else None
     if rfq is not None:
         print(rfq["id"], rfq.get("qtyDecimal"))
+    traded = event.get("rfqTrade")
+    trade = traded["trade"] if traded is not None else None
+    if trade is not None:
+        print(trade["tradeId"], trade["price"], trade["qtyDecimal"])
 
 
 private_ws.on("rfq_event", on_rfq_event)
@@ -434,7 +476,7 @@ await private_ws.subscribe_rfq("rfqs-1")
 ```
 
 Other event keys are `rfqClosed`, `quoteCreated`, `quoteDeleted`, `quoteAccepted`,
-`quoteConfirmed`, and `quoteExecuted`. Timestamps and nested RFQ/quote objects may
+`quoteConfirmed`, and `quoteExecuted`. Timestamps and nested RFQ/quote/trade objects may
 be null. Portfolio activity trades also expose `qtyDecimal` as an exact decimal
 string; use it instead of the rounded `qty` when fractional quantities matter.
 
