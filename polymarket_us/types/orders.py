@@ -119,7 +119,7 @@ class CreateOrderParams(TypedDict, total=False):
     intent: OrderIntent  # Required
     type: OrderType
     price: Amount
-    quantity: int
+    quantity: int | float
     tif: TimeInForce
     participateDontInitiate: bool
     goodTillTime: str
@@ -142,7 +142,7 @@ class ModifyOrderParams(TypedDict, total=False):
 
     marketSlug: str  # Required
     price: Amount
-    quantity: int
+    quantity: int | float
     tif: TimeInForce
     participateDontInitiate: bool
     goodTillTime: str

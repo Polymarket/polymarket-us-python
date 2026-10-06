@@ -19,19 +19,19 @@ create_order: CreateOrderParams = {
     "marketSlug": "market-a",
     "intent": "ORDER_INTENT_BUY_LONG",
     "price": {"value": "0.50", "currency": "USD"},
-    "quantity": 10,
+    "quantity": 1.25,
 }
 cancel_order: CancelOrderParams = {"marketSlug": "market-a"}
 modify_order: ModifyOrderParams = {
     "marketSlug": "market-a",
     "price": {"value": "0.55", "currency": "USD"},
-    "quantity": 5,
+    "quantity": 1.25,
 }
 cancel_item: CancelOrderListItem = {**cancel_order, "orderId": "order-a"}
 modify_item: ModifyOrderListItem = {**modify_order, "orderId": "order-a"}
-create: CreateOrderListParams = {"orders": [create_order]}
+create: CreateOrderListParams = {"orders": [create_order, {**create_order, "quantity": 10}]}
 cancel: CancelOrderListParams = {"orders": [cancel_item]}
-modify: ModifyOrderListParams = {"orders": [modify_item]}
+modify: ModifyOrderListParams = {"orders": [modify_item, {**modify_item, "quantity": 5}]}
 
 
 def batches(client: PolymarketUS) -> tuple[list[str], list[str], list[str]]:
