@@ -1,4 +1,4 @@
-"""Private RFQ stream types."""
+"""RFQ history and private stream types."""
 
 from typing import Literal, TypedDict
 
@@ -75,3 +75,31 @@ class Quote(_OptionalQuote):
     confirmationDeadline: str | None
     executionDeadline: str | None
     executedTime: str | None
+
+
+class RFQTrade(TypedDict):
+    """An anonymous original fill; later corrections and busts are not reflected."""
+
+    tradeId: str
+    symbol: str
+    price: str
+    qtyDecimal: str
+    aggressorSide: RFQSide
+    executedTime: str | None
+
+
+class GetRFQTradesParams(TypedDict, total=False):
+    """History filters; repeat the same filters and limit with each cursor."""
+
+    limit: int
+    cursor: str
+    startTime: str
+    endTime: str
+    symbol: str
+
+
+class GetRFQTradesResponse(TypedDict):
+    """A history page; continue nonempty cursors even when trades is empty."""
+
+    trades: list[RFQTrade]
+    cursor: str

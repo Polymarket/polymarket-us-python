@@ -77,7 +77,17 @@ from polymarket_us.types.portfolio import (
     Trade,
     UserPosition,
 )
-from polymarket_us.types.rfq import RFQ, Quote, QuoteStatus, RFQComboLeg, RFQSide, RFQStatus
+from polymarket_us.types.rfq import (
+    RFQ,
+    GetRFQTradesParams,
+    GetRFQTradesResponse,
+    Quote,
+    QuoteStatus,
+    RFQComboLeg,
+    RFQSide,
+    RFQStatus,
+    RFQTrade,
+)
 from polymarket_us.types.search import SearchParams, SearchResponse
 from polymarket_us.types.series import (
     GetSeriesListResponse,
@@ -114,6 +124,9 @@ __all__ = [
     "RFQSide",
     "RFQStatus",
     "QuoteStatus",
+    "RFQTrade",
+    "GetRFQTradesParams",
+    "GetRFQTradesResponse",
     # Events
     "Event",
     "Market",

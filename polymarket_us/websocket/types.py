@@ -2,7 +2,16 @@
 
 from typing import Literal, TypedDict
 
-from polymarket_us.types import RFQ, Amount, Execution, Order, Quote, UserBalance, UserPosition
+from polymarket_us.types import (
+    RFQ,
+    Amount,
+    Execution,
+    Order,
+    Quote,
+    RFQTrade,
+    UserBalance,
+    UserPosition,
+)
 
 PrivateSubscriptionType = Literal[
     "SUBSCRIPTION_TYPE_ORDER",
@@ -161,6 +170,10 @@ class _QuoteExecuted(_QuoteChange):
     executedTime: str | None
 
 
+class _RFQTradeEvent(TypedDict):
+    trade: RFQTrade | None
+
+
 class _RFQEventPayload(TypedDict, total=False):
     # The gateway emits only the selected event; unknown future events may be empty.
     rfqCreated: _RFQChange
@@ -170,6 +183,7 @@ class _RFQEventPayload(TypedDict, total=False):
     quoteAccepted: _QuoteAccepted
     quoteConfirmed: _QuoteConfirmed
     quoteExecuted: _QuoteExecuted
+    rfqTrade: _RFQTradeEvent
 
 
 class RFQEvent(TypedDict):
