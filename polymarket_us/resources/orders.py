@@ -4,14 +4,20 @@ from polymarket_us.resource import APIResource, AsyncAPIResource
 from polymarket_us.types import (
     CancelAllOrdersParams,
     CancelAllOrdersResponse,
+    CancelOrderListParams,
+    CancelOrderListResponse,
     CancelOrderParams,
     ClosePositionParams,
     ClosePositionResponse,
+    CreateOrderListParams,
+    CreateOrderListResponse,
     CreateOrderParams,
     CreateOrderResponse,
     GetOpenOrdersParams,
     GetOpenOrdersResponse,
     GetOrderResponse,
+    ModifyOrderListParams,
+    ModifyOrderListResponse,
     ModifyOrderParams,
     PreviewOrderParams,
     PreviewOrderResponse,
@@ -25,6 +31,30 @@ class Orders(APIResource):
         """Create a new order."""
         return self._client.post(
             "/v1/orders",
+            body=dict(params),
+            authenticated=True,
+        )
+
+    def create_many(self, params: CreateOrderListParams) -> CreateOrderListResponse:
+        """Create up to 20 orders in one request."""
+        return self._client.post(
+            "/v1/orders/batched",
+            body=dict(params),
+            authenticated=True,
+        )
+
+    def cancel_many(self, params: CancelOrderListParams) -> CancelOrderListResponse:
+        """Submit up to 20 cancellations; returned IDs do not confirm success."""
+        return self._client.post(
+            "/v1/orders/batched/cancel",
+            body=dict(params),
+            authenticated=True,
+        )
+
+    def modify_many(self, params: ModifyOrderListParams) -> ModifyOrderListResponse:
+        """Submit up to 20 modifications; returned IDs do not confirm success."""
+        return self._client.post(
+            "/v1/orders/batched/modify",
             body=dict(params),
             authenticated=True,
         )
@@ -89,6 +119,30 @@ class AsyncOrders(AsyncAPIResource):
         """Create a new order."""
         return await self._client.post(
             "/v1/orders",
+            body=dict(params),
+            authenticated=True,
+        )
+
+    async def create_many(self, params: CreateOrderListParams) -> CreateOrderListResponse:
+        """Create up to 20 orders in one request."""
+        return await self._client.post(
+            "/v1/orders/batched",
+            body=dict(params),
+            authenticated=True,
+        )
+
+    async def cancel_many(self, params: CancelOrderListParams) -> CancelOrderListResponse:
+        """Submit up to 20 cancellations; returned IDs do not confirm success."""
+        return await self._client.post(
+            "/v1/orders/batched/cancel",
+            body=dict(params),
+            authenticated=True,
+        )
+
+    async def modify_many(self, params: ModifyOrderListParams) -> ModifyOrderListResponse:
+        """Submit up to 20 modifications; returned IDs do not confirm success."""
+        return await self._client.post(
+            "/v1/orders/batched/modify",
             body=dict(params),
             authenticated=True,
         )

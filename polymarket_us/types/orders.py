@@ -119,7 +119,7 @@ class CreateOrderParams(TypedDict, total=False):
     intent: OrderIntent  # Required
     type: OrderType
     price: Amount
-    quantity: int
+    quantity: int | float
     tif: TimeInForce
     participateDontInitiate: bool
     goodTillTime: str
@@ -142,7 +142,7 @@ class ModifyOrderParams(TypedDict, total=False):
 
     marketSlug: str  # Required
     price: Amount
-    quantity: int
+    quantity: int | float
     tif: TimeInForce
     participateDontInitiate: bool
     goodTillTime: str
@@ -211,3 +211,51 @@ class ClosePositionResponse(TypedDict, total=False):
 
     id: str
     executions: list[Execution]
+
+
+class CreateOrderListParams(TypedDict):
+    """A batch of up to 20 orders to create."""
+
+    orders: list[CreateOrderParams]
+
+
+class CreateOrderListResponse(TypedDict):
+    """Exchange-assigned IDs; follow the order stream for execution outcomes."""
+
+    createdOrderIds: list[str]
+
+
+class CancelOrderListItem(CancelOrderParams):
+    """An existing order to cancel in a batch."""
+
+    orderId: str
+
+
+class CancelOrderListParams(TypedDict):
+    """A batch of up to 20 orders to cancel."""
+
+    orders: list[CancelOrderListItem]
+
+
+class CancelOrderListResponse(TypedDict):
+    """IDs submitted for cancellation, not confirmation of per-order success."""
+
+    canceledOrderIds: list[str]
+
+
+class ModifyOrderListItem(ModifyOrderParams):
+    """An existing order to modify; marketSlug is required by the API."""
+
+    orderId: str
+
+
+class ModifyOrderListParams(TypedDict):
+    """A batch of up to 20 orders to modify."""
+
+    orders: list[ModifyOrderListItem]
+
+
+class ModifyOrderListResponse(TypedDict):
+    """IDs submitted for modification, not confirmation of per-order success."""
+
+    modifiedOrderIds: list[str]
