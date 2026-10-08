@@ -402,6 +402,23 @@ do not amend them.
 | `portfolio.positions(params?)` | Get trading positions |
 | `portfolio.activities(params?)` | Get activity history |
 
+Filter activity history by time and reward type:
+
+```python
+activities = client.portfolio.activities(
+    {
+        "startTime": "2026-10-01T00:00:00Z",
+        "endTime": "2026-10-02T00:00:00Z",
+        "types": ["ACTIVITY_TYPE_TAKER_FEE_REBATE", "ACTIVITY_TYPE_LIQUIDITY_PROGRAM"],
+    }
+)
+```
+
+Both time filters are optional RFC 3339 strings and include their endpoints.
+When supplied together, `startTime` must be before `endTime`. For later pages,
+pass `nextCursor` as `cursor` with the same filters until `eof` is true.
+The async client accepts the same parameters with `await`.
+
 ### Account (Authenticated)
 
 | Method | Description |
