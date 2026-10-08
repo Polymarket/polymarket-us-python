@@ -79,7 +79,11 @@ class PrivateWebSocket(BaseWebSocket):
         elif message.get("error"):
             self._emit(
                 "error",
-                WebSocketError(message["error"], message.get("requestId")),
+                WebSocketError(
+                    message["error"],
+                    message.get("requestId"),
+                    subscription_type=message.get("subscriptionType"),
+                ),
             )
         elif "orderSubscriptionSnapshot" in message or "ordersSnapshot" in message:
             self._emit("order_snapshot", message)

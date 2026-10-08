@@ -178,3 +178,16 @@ class TestWebSocketError:
         """Should store request_id."""
         error = WebSocketError("test", request_id="req-123")
         assert error.request_id == "req-123"
+        assert error.subscription_type is None
+
+    def test_subscription_context_preserves_existing_error_behavior(self) -> None:
+        error = WebSocketError(
+            "subscription failed", "req-123", subscription_type="SUBSCRIPTION_TYPE_ORDER"
+        )
+        assert error.subscription_type == "SUBSCRIPTION_TYPE_ORDER"
+        assert error.request_id == "req-123"
+        assert error.args == ("subscription failed",)
+        assert str(error) == "subscription failed"
+        assert repr(error) == (
+            "WebSocketError(message='subscription failed', request_id='req-123')"
+        )

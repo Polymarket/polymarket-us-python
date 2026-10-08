@@ -194,6 +194,9 @@ except APIError as e:
 separately with `SUBSCRIPTION_TYPE_ORDER_SNAPSHOT` and a distinct request ID. A
 successful snapshot ends with an `eof: true` frame; failures use the `error` handler.
 
+For server error frames, both streams emit a `WebSocketError` with optional
+`request_id` and `subscription_type` attributes when supplied by the server.
+
 ```python
 import asyncio
 import os

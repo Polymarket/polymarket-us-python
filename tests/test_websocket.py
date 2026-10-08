@@ -2,6 +2,7 @@
 
 import asyncio
 import base64
+import json
 from collections.abc import AsyncIterator
 from typing import Literal
 
@@ -11,9 +12,10 @@ from websockets.asyncio.server import ServerConnection, serve
 from websockets.http11 import Request
 
 from polymarket_us import AuthenticationError, PolymarketUS
-from polymarket_us.errors import PolymarketUSError
+from polymarket_us.errors import PolymarketUSError, WebSocketError
 from polymarket_us.websocket import MarketsWebSocket, PrivateWebSocket
 from polymarket_us.websocket.base import BaseWebSocket
+from polymarket_us.websocket.types import WebSocketErrorMessage
 
 TEST_SECRET_KEY = "nWGxne/9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A="
 
@@ -83,6 +85,50 @@ class TestWebSocketLifecycle:
                     yield ws, peer
                 finally:
                     await asyncio.wait_for(ws.close(), timeout=5)
+
+    @pytest.mark.parametrize(
+        "subscription_type",
+        ["known", "SUBSCRIPTION_TYPE_UNSPECIFIED", "SUBSCRIPTION_TYPE_FUTURE", None],
+    )
+    @pytest.mark.parametrize("request_id", ["req-123", None])
+    async def test_error_callback_preserves_subscription_context(
+        self,
+        connection: tuple[BaseWebSocket, ServerConnection],
+        stream: Literal["markets", "private"],
+        subscription_type: str | None,
+        request_id: str | None,
+    ) -> None:
+        ws, peer = connection
+        if subscription_type == "known":
+            subscription_type = (
+                "SUBSCRIPTION_TYPE_MARKET_DATA"
+                if stream == "markets"
+                else "SUBSCRIPTION_TYPE_ORDER"
+            )
+        frame: WebSocketErrorMessage = {"error": "subscription failed"}
+        if subscription_type is not None:
+            frame["subscriptionType"] = subscription_type
+        if request_id is not None:
+            frame["requestId"] = request_id
+        errors: list[PolymarketUSError] = []
+        messages: list[object] = []
+        heartbeat = asyncio.Event()
+        ws.on("error", errors.append)
+        ws.on("message", messages.append)
+        ws.on("heartbeat", heartbeat.set)
+
+        await asyncio.wait_for(peer.send(json.dumps(frame)), timeout=5)
+        await asyncio.wait_for(peer.send('{"heartbeat": {}}'), timeout=5)
+        await asyncio.wait_for(heartbeat.wait(), timeout=5)
+
+        assert messages == [frame, {"heartbeat": {}}]
+        assert len(errors) == 1
+        error = errors[0]
+        assert isinstance(error, WebSocketError)
+        assert str(error) == "subscription failed"
+        assert error.request_id == request_id
+        assert error.subscription_type == subscription_type
+        assert ws.is_connected
 
     @pytest.mark.parametrize("close_code", [1000, 1001, 1011])
     async def test_remote_close_emits_once(
