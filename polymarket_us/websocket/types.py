@@ -272,6 +272,7 @@ class WebSocketErrorMessage(TypedDict, total=False):
 
     requestId: str
     error: str
+    subscriptionType: str
 
 
 PrivateMessage = (

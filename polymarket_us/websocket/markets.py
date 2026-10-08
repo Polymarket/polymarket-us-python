@@ -72,7 +72,11 @@ class MarketsWebSocket(BaseWebSocket):
         elif "error" in message:
             self._emit(
                 "error",
-                WebSocketError(message["error"], message.get("requestId")),
+                WebSocketError(
+                    message["error"],
+                    message.get("requestId"),
+                    subscription_type=message.get("subscriptionType"),
+                ),
             )
         elif "marketData" in message:
             self._emit("market_data", message)

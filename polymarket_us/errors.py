@@ -123,9 +123,16 @@ class InternalServerError(APIStatusError):
 class WebSocketError(PolymarketUSError):
     """WebSocket-related error."""
 
-    def __init__(self, message: str, request_id: str | None = None) -> None:
+    def __init__(
+        self,
+        message: str,
+        request_id: str | None = None,
+        *,
+        subscription_type: str | None = None,
+    ) -> None:
         super().__init__(message)
         self.request_id = request_id
+        self.subscription_type = subscription_type
 
     def __repr__(self) -> str:
         return f"WebSocketError(message={str(self)!r}, request_id={self.request_id!r})"
