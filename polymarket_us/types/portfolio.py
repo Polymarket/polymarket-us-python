@@ -14,6 +14,8 @@ ActivityType = Literal[
     "ACTIVITY_TYPE_ACCOUNT_WITHDRAWAL",
     "ACTIVITY_TYPE_REFERRAL_BONUS",
     "ACTIVITY_TYPE_TRANSFER",
+    "ACTIVITY_TYPE_TAKER_FEE_REBATE",
+    "ACTIVITY_TYPE_LIQUIDITY_PROGRAM",
 ]
 
 SortOrder = Literal["SORT_ORDER_DESCENDING", "SORT_ORDER_ASCENDING"]
@@ -122,6 +124,8 @@ class GetActivitiesParams(TypedDict, total=False):
     marketSlug: str
     types: list[ActivityType]
     sortOrder: SortOrder
+    startTime: str
+    endTime: str
 
 
 class GetActivitiesResponse(TypedDict, total=False):
