@@ -79,9 +79,9 @@ class Order(TypedDict, total=False):
     side: OrderSide
     type: OrderType
     price: Amount
-    quantity: int
-    cumQuantity: int
-    leavesQuantity: int
+    quantity: int | float
+    cumQuantity: int | float
+    leavesQuantity: int | float
     tif: TimeInForce
     goodTillTime: str
     intent: OrderIntent
