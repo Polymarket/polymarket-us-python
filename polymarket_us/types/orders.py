@@ -52,7 +52,7 @@ ManualOrderIndicator = Literal[
 class SlippageTolerance(TypedDict, total=False):
     """Slippage tolerance for market orders."""
 
-    currentPrice: Amount
+    currentPrice: Amount  # Selected-outcome price: NO for short intents, unlike price.
     bips: int
     ticks: int
 
@@ -78,7 +78,7 @@ class Order(TypedDict, total=False):
     marketSlug: str
     side: OrderSide
     type: OrderType
-    price: Amount
+    price: Amount  # Exchange YES price, including NO orders.
     quantity: int
     cumQuantity: int
     leavesQuantity: int
@@ -87,7 +87,7 @@ class Order(TypedDict, total=False):
     intent: OrderIntent
     marketMetadata: MarketMetadata
     state: OrderState
-    avgPx: Amount
+    avgPx: Amount  # Average exchange YES fill price, including NO orders.
     cashOrderQty: Amount
     insertTime: str
     createTime: str
@@ -118,7 +118,8 @@ class CreateOrderParams(TypedDict, total=False):
     marketSlug: str  # Required
     intent: OrderIntent  # Required
     type: OrderType
-    price: Amount
+    price: Amount  # YES price for every intent; for NO at X, send 1 - X.
+    priceIsYes: bool  # Explicit confirmation for enrolled users; never converts price.
     quantity: int | float
     tif: TimeInForce
     participateDontInitiate: bool
@@ -141,7 +142,8 @@ class ModifyOrderParams(TypedDict, total=False):
     """Parameters for modifying an order."""
 
     marketSlug: str  # Required
-    price: Amount
+    price: Amount  # Replacement YES price, including NO orders.
+    priceIsYes: bool  # Required on every modify for enrolled users, including YES orders.
     quantity: int | float
     tif: TimeInForce
     participateDontInitiate: bool
